@@ -94,7 +94,7 @@ function refreshGameInfo()
 {
   $.get('/games/' + gameId, {}, function(data, text, xhr) {
     var winner = null;
-    for (pid in data.players)
+    for (var pid in data.players)
     {
       // Check for a winner
       if (data.players[pid].goals >= data.threshold) 

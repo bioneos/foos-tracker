@@ -9,7 +9,7 @@ function initHomePage()
     // Put a link to the most recent game
     if (data && data.games)
     {
-      if (data.games.length == 0)
+      if (data.games.length === 0)
         $('#last-game').append('<h2>No Game History!</h2>');
       else
       {
@@ -73,7 +73,7 @@ function setupVisualization()
       .attr("d", viz.arc)
       .style("fill", function(d) { return color(d.data.name); })
       // Save the _current start for each arc:
-      .each(function(d) { this._current = d });
+      .each(function(d) { this._current = d; });
 
   var label = g.append("g")
       .attr("transform", function(d) { return "translate(" + viz.textarc.centroid(d) + ")"; })
@@ -137,7 +137,7 @@ function loadGameDay()
  */
 function getDay(d)
 {
-  var date = d.getFullYear() + ' / ' + (d.getMonth() + 1) + ' / ' + d.getDate()
+  var date = d.getFullYear() + ' / ' + (d.getMonth() + 1) + ' / ' + d.getDate();
   return date;
 }
 
