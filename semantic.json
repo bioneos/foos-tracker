@@ -1,0 +1,49 @@
+{
+  "base": "semantic/",
+  "paths": {
+    "source": {
+      "config": "src/theme.config",
+      "definitions": "src/definitions/",
+      "site": "src/site/",
+      "themes": "src/themes/"
+    },
+    "output": {
+      "packaged": "../public/",
+      "uncompressed": "public/components/",
+      "compressed": "public/components/",
+      "themes": "public/themes/"
+    },
+    "clean": "public/"
+  },
+  "permission": false,
+  "rtl": "No",
+  "components": [
+    "reset",
+    "site",
+    "button",
+    "container",
+    "divider",
+    "header",
+    "icon",
+    "image",
+    "input",
+    "label",
+    "list",
+    "loader",
+    "segment",
+    "form",
+    "grid",
+    "menu",
+    "message",
+    "table",
+    "accordion",
+    "checkbox",
+    "dropdown",
+    "modal",
+    "transition",
+    "api",
+    "form",
+    "state"
+  ],
+  "version": "2.0.8"
+}
