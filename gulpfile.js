@@ -4,13 +4,13 @@ var gulp = require('gulp'),
   sass = require('gulp-ruby-sass');
 
 gulp.task('sass', function () {
-  return sass('./public/css/')
+  return sass('./sass/')
     .pipe(gulp.dest('./public/css'))
     .pipe(livereload());
 });
 
 gulp.task('watch', function() {
-  gulp.watch('./public/css/*.scss', ['sass']);
+  gulp.watch('./sass/*.scss', ['sass']);
 });
 
 gulp.task('develop', function () {
