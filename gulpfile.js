@@ -1,7 +1,24 @@
 var gulp = require('gulp'),
   nodemon = require('gulp-nodemon'),
   livereload = require('gulp-livereload'),
+  jshint = require('gulp-jshint'),
+  gutil = require('gulp-util'),
   sass = require('gulp-ruby-sass');
+var fs = require('fs-extra');
+
+// Initialize required directories
+gulp.task('init', function() {
+  gutil.log('Synchronously creating required directories');
+  fs.ensureDirSync('./data/');
+  // Add any other required directories here
+});
+
+// Lint Task
+gulp.task('lint', function() {
+  gulp.src('./public/js/*.js')
+    .pipe(jshint())
+    .pipe(jshint.reporter('default', {verbose: true}));
+});
 
 gulp.task('sass', function () {
   return sass('./sass/')
@@ -13,7 +30,7 @@ gulp.task('watch', function() {
   gulp.watch('./sass/*.scss', ['sass']);
 });
 
-gulp.task('develop', function () {
+gulp.task('develop', ['init'], function () {
   livereload.listen();
   nodemon({
     script: 'app.js',
@@ -26,6 +43,8 @@ gulp.task('develop', function () {
 });
 
 gulp.task('default', [
+  'init',
+  'lint',
   'sass',
   'develop',
   'watch'
