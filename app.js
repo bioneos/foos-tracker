@@ -8,6 +8,9 @@ var app = express();
 
 require('./config/express')(app, config);
 
+console.log('Starting up on: ' + config.port);
+console.log('  DB: ' + config.db);
+
 db.sequelize
   .sync()
   .then(function () {

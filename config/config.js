@@ -18,7 +18,7 @@ var config = {
     app: {
       name: 'foos-tracker'
     },
-    port: 3000,
+    port: 3030,
     db: 'sqlite://localhost/foos-tracker-test',
     storage: rootPath + '/data/foos-tracker-test'
   },
@@ -28,9 +28,9 @@ var config = {
     app: {
       name: 'foos-tracker'
     },
-    port: 3000,
+    port: 3030,
     db: 'sqlite://localhost/foos-tracker-production',
-    storage: rootPath + 'data/foos-tracker-production'
+    storage: rootPath + '/data/foos-tracker-production'
   }
 };
 
