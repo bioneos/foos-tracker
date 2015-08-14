@@ -71,7 +71,9 @@ function setupVisualization()
 
   g.append("path")
       .attr("d", viz.arc)
-      .style("fill", function(d) { return color(d.data.name); });
+      .style("fill", function(d) { return color(d.data.name); })
+      // Save the _current start for each arc:
+      .each(function(d) { this._current = d });
 
   var label = g.append("g")
       .attr("transform", function(d) { return "translate(" + viz.textarc.centroid(d) + ")"; })
@@ -190,11 +192,30 @@ function changeData(data)
   var t1 = sliceLayer.transition().duration(1000);
 
   // Animate the path change
-  t1.select("path").attr("d", viz.arc);
+  t1.select("path").attrTween("d", arcTween);
   // And the text position
   t1.select("g").attr("transform", function(d) { return "translate(" + viz.textarc.centroid(d) + ")"; });
   // And text values (after the objects move)
   var t2 = t1.transition();
   t2.select("g .name").text(function(d) { return (d.data.goals > 0) ? d.data.name : ""; });
   t2.select("g .goals").text(function(d) { return (d.data.goals > 0) ? d.data.goals : ""; });
+}
+
+/**
+ * Custom arc tween method, since the defaults cannot handle arcs > 180*.
+ * See discussion here, and detailed example underneath:
+ *   http://stackoverflow.com/questions/21285385/d3-pie-chart-arc-is-invisible-in-transition-to-180%C2%B0
+ *   http://bl.ocks.org/mbostock/1346410
+ */
+// Store the displayed angles in _current.
+// Then, interpolate from _current to the new angles.
+// During the transition, _current is updated in-place by d3.interpolate.
+function arcTween(a)
+{
+  this._current = this._current || a;
+  var i = d3.interpolate(this._current, a);
+  this._current = i(0);
+  return function(t) {
+    return viz.arc(i(t));
+  };
 }
