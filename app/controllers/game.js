@@ -77,7 +77,6 @@ router.get('/last-week', function (req, res, next) {
     //   same list of players, in the same order. So start by building
     //   the information for the players list for this week.
     var playerList = getStaticPlayerList(games);
-    console.log(playerList);
 
     // Now build the information for the games themselves:
     var details = {};
