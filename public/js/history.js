@@ -135,7 +135,7 @@ function loadGameDay()
  */
 function getDay(d)
 {
-  var date = d.getFullYear() + ' / ' + d.getMonth() + ' / ' + d.getDay()
+  var date = d.getFullYear() + ' / ' + (d.getMonth() + 1) + ' / ' + d.getDate()
   return date;
 }
 
@@ -147,7 +147,7 @@ function loadWeek()
   if (!gameHistory) return;
 
   var gameDay = new Date(Date.parse(gameHistory[0].when));
-  var startDay = gameDay;
+  var startDay = new Date(Date.parse(gameHistory[0].when));
   startDay.setDate(gameDay.getDate() - 7);
   $('#last-game h2').replaceWith('<h2>' + getDay(startDay) + ' &mdash; ' + getDay(gameDay) + '</h2>');
 
