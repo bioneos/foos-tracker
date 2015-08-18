@@ -1,9 +1,10 @@
 var gulp = require('gulp'),
   nodemon = require('gulp-nodemon'),
+  plumber = require('gulp-plumber'),
   livereload = require('gulp-livereload'),
   jshint = require('gulp-jshint'),
   gutil = require('gulp-util'),
-  sass = require('gulp-ruby-sass');
+  sass = require('gulp-sass');
 var fs = require('fs-extra');
 
 // Initialize required directories
@@ -21,7 +22,9 @@ gulp.task('lint', function() {
 });
 
 gulp.task('sass', function () {
-  return sass('./sass/')
+  gulp.src('./sass/')
+    .pipe(plumber())
+    .pipe(sass().on('error', sass.logError))
     .pipe(gulp.dest('./public/css'))
     .pipe(livereload());
 });
