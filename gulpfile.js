@@ -22,7 +22,7 @@ gulp.task('lint', function() {
 });
 
 gulp.task('sass', function () {
-  gulp.src('./sass/')
+  gulp.src('./sass/*.scss')
     .pipe(plumber())
     .pipe(sass().on('error', sass.logError))
     .pipe(gulp.dest('./public/css'))
