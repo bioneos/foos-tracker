@@ -17,7 +17,7 @@ function initHomePage()
         var h = when.getHours();
         var m = when.getMinutes() < 10 ? "0" + when.getMinutes() : when.getMinutes();
         var time = (h > 12) ? (h - 12) + ':' + m + 'pm' : h + ':' + m + 'am';
-        var date = getDay(when) + ' @ ' + time;
+        var date = getDateShortDisplay(when) + ' @ ' + time;
         $('#last-game').append('<h2><a href="/game/' + data.games[0].id + '">' + date + '</h2>');
 
         // Get most recent data into memory
@@ -99,7 +99,7 @@ function loadLastGame()
   var h = gameDay.getHours();
   var m = gameDay.getMinutes() < 10 ? "0" + gameDay.getMinutes() : gameDay.getMinutes();
   var time = (h > 12) ? (h - 12) + ':' + m + 'pm' : h + ':' + m + 'am';
-  var date = getDay(gameDay) + ' @ ' + time;
+  var date = getDateShortDisplay(gameDay) + ' @ ' + time;
   $('#last-game h2').replaceWith('<h2><a href="/game/' + gameHistory[0].id + '">' + date + '</a></h2>');
 
   changeData(first(gameHistory));
@@ -112,7 +112,7 @@ function loadGameDay()
 {
   if (!gameHistory) return;
   var gameDay = new Date(Date.parse(gameHistory[0].when));
-  $('#last-game h2').replaceWith('<h2>' + getDay(gameDay) + '</h2>');
+  $('#last-game h2').replaceWith('<h2>' + getDateShortDisplay(gameDay) + '</h2>');
 
   // Sum all data from the same y/m/d of the latest game in our gameHistory
   var data = first(gameHistory);
@@ -121,7 +121,7 @@ function loadGameDay()
     var day = new Date(Date.parse(gameHistory[i].when));
     if (!(day.getYear() == gameDay.getYear() && 
       day.getMonth() == gameDay.getMonth() &&
-      day.getDay() == gameDay.getDay()))
+      day.getDate() == gameDay.getDate()))
       continue;
     for (var pidx = 0; pidx < data.length; pidx++)
     {
@@ -135,7 +135,7 @@ function loadGameDay()
 /**
  * Get a day as a string.
  */
-function getDay(d)
+function getDateShortDisplay(d)
 {
   var date = d.getFullYear() + ' / ' + (d.getMonth() + 1) + ' / ' + d.getDate();
   return date;
@@ -151,7 +151,7 @@ function loadWeek()
   var gameDay = new Date(Date.parse(gameHistory[0].when));
   var startDay = new Date(Date.parse(gameHistory[0].when));
   startDay.setDate(gameDay.getDate() - 7);
-  $('#last-game h2').replaceWith('<h2>' + getDay(startDay) + ' &mdash; ' + getDay(gameDay) + '</h2>');
+  $('#last-game h2').replaceWith('<h2>' + getDateShortDisplay(startDay) + ' &mdash; ' + getDateShortDisplay(gameDay) + '</h2>');
 
   // Sum all data from the same y/m/d of the latest game in our gameHistory
   var data = first(gameHistory);
