@@ -11,6 +11,7 @@
   </div>
   <div class="ui segment basic">
     <button class="ui button" onclick="newGame();">Start a New Game</button>
+    <a href="/players/create" class="ui button">Add a Player</a>
   </div>
 
   <div class="ui segment basic" id="last-game">

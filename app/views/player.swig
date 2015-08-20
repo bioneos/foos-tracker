@@ -49,7 +49,7 @@
     <div class="ui buttons">
       <button class="ui button positive" type="submit">{% if id %}Update{% else %}Create{% endif %}</button>
       <div class="or"></div>
-      <button class="ui button">Cancel</button>
+      <a href="/" class="ui button">Cancel</a>
     </div>
     <div class="ui error message">
     </div>
