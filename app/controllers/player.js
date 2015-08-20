@@ -6,12 +6,44 @@ module.exports = function (app) {
   app.use('/players', router);
 };
 
+/**
+ * Page templates:
+ */
+router.get('/create', function(req, res, next) {
+  // Just serve up our create UI
+  res.render('player') ;
+}) ;
+
+router.get('/:id/edit', function(req, res, next) {
+  if (isNaN(req.params.id)) res.status(400).end() ;
+
+  // This is an edit, so attempt to find our player
+  db.Player.find({ where : { id: req.params.id }}).success(function(player) {
+    if (player) res.render('player', { id: req.params.id,  name: player.name, email: player.email }) ;
+    else res.render('player', { idNotFound: true }) ;
+  }) ;
+}) ;
+
+router.get('/:id/stats', function(req, res, next) {
+
+}) ;
+
+/**
+ * JSON routes:
+ */
 router.get('/all', function (req, res, next) {
   db.Player.findAll().success(function (players) {
     var ret = {players: []};
     var details = {};
     players.forEach(function(player) {
-      details = {id: player.id, name: player.name, email: player.email };
+      details = {
+        id: player.id,
+        name: player.name,
+        email: player.email,
+        nick: player.nick,
+        retired: player.retired,
+        gender: player.gender
+      };
       ret.players.push(details);
     });
     res.json(ret);
@@ -34,7 +66,12 @@ router.put('/:id', function(req, res, next) {
     }
     else
     {
-      player.updateAttributes({ name: req.body.name }).then(function() {
+      player.updateAttributes({
+        name: req.body.name,
+        nick: req.body.nick,
+        gender: req.body.gender,
+        retired: req.body.retired
+      }).then(function() {
         res.json(player);
       });
     }
@@ -50,7 +87,13 @@ router.post('/create', function(req, res, next) {
     }
     else
     {
-      db.Player.create({name: req.body.name, email: req.body.email}).then(function(player) {
+      db.Player.create({
+        name: req.body.name,
+        email: req.body.email,
+        nick: req.body.nick,
+        retired: req.body.retired,
+        gender: req.body.gender
+      }).then(function(player) {
         res.json(player);
       });
     }
