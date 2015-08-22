@@ -1,7 +1,6 @@
 {% extends 'layout.swig' %}
 
 {% block content %}
-  <h1>{{ title }}</h1>
   <div id="messages">
     {% for msg in messages %}
       {% if loop.first %}<ul>{% endif %}

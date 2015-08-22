@@ -11,7 +11,16 @@
   {% endif %}
 </head>
 <body>
-  <div class="ui container">
+  <header class="ui fixed inverted menu">
+    <div class="ui container">
+      <a href="/" class="header item">
+        <img id="main-logo" class="logo" src="/images/logo.png">
+        {% if title %}<div id="main-title">{{title}}</div>{% endif %}
+      </a>
+    </div>
+  </header>
+
+  <div id="main-page-wrap" class="ui container">
     {% block content %}{% endblock %}
   </div>
   <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
