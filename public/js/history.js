@@ -42,7 +42,10 @@ function setupVisualization()
   var radius = Math.min(width, height) / 2;
 
   // Define our palette
-  var color = d3.scale.ordinal().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+  //var color = d3.scale.ordinal().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+  var color = d3.scale.ordinal().range(["#4e9a06", "#057740", "#8ea606", 
+    "#84cf3e", "#30a06a", "#c8df43",
+    "#295500", "#004222", "#4e5b00"]); 
 
   var outer = radius - 10;
   viz.arc = d3.svg.arc().outerRadius(outer).innerRadius(0);
