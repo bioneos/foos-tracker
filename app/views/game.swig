@@ -24,7 +24,7 @@
   </div>
 
   <div id="players" class="ui center aligned equal width grid">
-    <div class="ui row"><div class="ui column"><h2 class="ui header teal">Players</h2></div></div>
+    <div class="ui row"><div class="ui column"><h2 class="ui header green">Players</h2></div></div>
 
     <ul id="players-list" class="ui row"></ul>
 
@@ -37,7 +37,7 @@
       </div> 
     </div>
   </div>
-  <div id="winner" class="ui inverted teal segment center aligned"></div>
+  <div id="winner" class="ui inverted green segment center aligned"></div>
 
   <div id="start-time" class="ui inverted segment footer">{{ gameStart.toString() }}</div>
 {% endblock %}
