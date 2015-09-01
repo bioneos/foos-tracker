@@ -211,7 +211,6 @@ router.post('/:id/remove/player/:pid', function(req, res, next) {
 
 // Score a goal
 router.post('/:id/goal/player/:pid', function(req, res, next) {
-  console.log('GOOOOOOOOOOAL!');
   db.Game.find({ where: { id: req.params.id }}).then(function (game) {
     if (!game) res.json({error: 'Invalid Game ID'});
     else
