@@ -5,7 +5,14 @@ module.exports = function (sequelize, DataTypes) {
 
   var Game = sequelize.define('Game', {
     when: DataTypes.DATE,
-    threshold: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 5}
+    threshold: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 5},
+    winner : {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'Players',
+        key: 'id'
+      }
+    }
   }, {
     classMethods: {
       associate: function (models) {
@@ -17,4 +24,3 @@ module.exports = function (sequelize, DataTypes) {
 
   return Game;
 };
-

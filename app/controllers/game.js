@@ -234,6 +234,12 @@ router.post('/:id/goal/player/:pid', function(req, res, next) {
                 goal.setGame(game);
                 res.json({success: 'Player ' + player.name + ': GOOOOOOOOOOOOOAL!', id: goal.id});
               });
+
+              // Check to see if adding this goal for the player id will hit the threshold, mark it as over and indicate a winner
+              rows.forEach(function(row) {
+                if (row.PlayerId !== player.id) return ;
+                if ((row.c + 1) === game.threshold) game.updateAttributes({ 'winner' : player.id}) ;
+              }) ;
             }
           });
         }
