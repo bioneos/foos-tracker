@@ -18,7 +18,7 @@ router.get('/:id/edit', function(req, res, next) {
   if (isNaN(req.params.id)) res.status(400).end() ;
 
   // This is an edit, so attempt to find our player
-  db.Player.find({ where : { id: req.params.id }}).success(function(player) {
+  db.Player.find({ where : { id: req.params.id }}).then(function(player) {
     if (player) res.render('player', { id: req.params.id,  name: player.name, email: player.email }) ;
     else res.render('player', { idNotFound: true }) ;
   }) ;
@@ -32,8 +32,8 @@ router.get('/:id/stats', function(req, res, next) {
  * JSON routes:
  */
 router.get('/all', function (req, res, next) {
-  db.Player.findAll().success(function (players) {
-    var ret = {players: []};
+  db.Player.findAll().then(function (players) {
+    var ret = { players: [] };
     var details = {};
     players.forEach(function(player) {
       details = {
@@ -41,7 +41,7 @@ router.get('/all', function (req, res, next) {
         name: player.name,
         email: player.email,
         nick: player.nick,
-        retired: player.retired,
+        retired: player.retired || 0,
         gender: player.gender
       };
       ret.players.push(details);
@@ -50,7 +50,7 @@ router.get('/all', function (req, res, next) {
   });
 });
 router.get('/:id', function (req, res, next) {
-  db.Player.find({ where: { id: req.params.id }}).success(function (player) {
+  db.Player.find({ where: { id: req.params.id }}).then(function (player) {
     // Get Player's last game?
     if (player) res.json(player);
     else res.json({});
