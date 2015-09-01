@@ -53,7 +53,6 @@ router.get('/all', function (req, res, next) {
 // Leaderboard of all players
 router.get('/leaderboard', function(req, res, next) {
   var leaderboard = [] ;
-  var games = {} ;
 
   // Load up our players for our game summary table
   db.Player.findAll({ 'include' : [ db.Game, db.Goal ]}).then(function (players) {
@@ -62,40 +61,44 @@ router.get('/leaderboard', function(req, res, next) {
       var playerObj = {
         'name' : player.name,
         'nick' : player.nick,
-        'retired' : player.retired,
+        'retired' : player.retired || 0,
         'wins' : 0,
-        'loses' : 0,
+        'losses' : 0,
         'embs' : 0,
-        'goals' : 0
+        'goals' : player.Goals.length
       } ;
-
-      player.Goals.forEach(function(goal) {
-        if (!games[goal.GameId]) games[goal.GameId] = {} ;
-        if (!games[goal.GameId][goal.PlayerId]) games[goal.GameId][goal.PlayerId] = 0 ;
-        games[goal.GameId][goal.PlayerId]++ ;
-      }) ;
 
       // For every game this player is in, tally our goals/wins/losses/embarrassments
       player.Games.forEach(function(game) {
-        playerObj.goals += player.Goals.length ;
+        // If the game has no winner, the game is either on going or in error, so skip it
+        if (!game.winner) return ;
 
         // Handle our outcomes
-        if (player.Goals.length === game.threshold)
+        if (game.winner === player.id)
         {
           playerObj.wins++ ;
         }
         else
         {
-          playerObj.loses++ ;
-          if (player.Goals.length === 0) playerObj.embs++ ;
+          // Determine if the player was embarrassed by checking if any of their goals belong to this game
+          var shutout = 1 ;
+          player.Goals.forEach(function(goal) {
+            if (goal.GameId === game.id)
+            {
+              shutout = 0 ;
+              return ;
+            }
+          }) ;
+          playerObj.embs += shutout ;
+          playerObj.losses++ ;
         }
       }) ;
 
       leaderboard.push(playerObj) ;
+      console.log('added player ' + playerObj.name + '[' + leaderboard.length + ']') ;
     }) ;
 
-    console.log(games) ;
-
+    res.json(leaderboard) ;
   });
 }) ;
 
