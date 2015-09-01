@@ -18,6 +18,19 @@
     <button class="ui tiny button" onclick="loadGameDay();" title="Last Game Day">GD</button>
     <button class="ui tiny button" onclick="loadWeek();" title="Last Week">W</button>
   </div>
+  <table id="leaderboard" class="ui celled padded table">
+    <thead>
+      <tr>
+        <th class="single line">Player</th>
+        <th>Goals For</th>
+        <th>Wins</th>
+        <th>Loses</th>
+        <th>Embarrassments</th>
+        <th>Win %</th>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
 {% endblock %}
 
 {% block scripts %}
