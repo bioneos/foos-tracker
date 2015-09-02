@@ -15,39 +15,39 @@
     <p>Edit the player details, required fields are marked</p>
   </div>
   <form class="ui form attached segment {% if !idNotFound %} bottom {% endif %}">
-    <input type="hidden" id="playerId" value="{{id}}"/>
+    <input type="hidden" id="playerId" value="{{player.id}}"/>
     <div class="two fields">
       <div class="required field">
         <label for="name">Name:</label>
-        <input id="name" name="name" type="text" placeholder="Player Name" value="{{name}}">
+        <input id="name" name="name" type="text" placeholder="Player Name" value="{{player.name}}">
       </div>
       <div class="field">
         <label for="gender">Gender:</label>
         <select id="gender" name="gender" class="ui dropdown">
-          <option value="man">Man</option>
-          <option value="woman">Woman</option>
-          <option value="machine">Machine</option>
+        {% for val in [ 'man', 'woman', 'machine'] %}
+          <option value="{{val}}" {% if player.gender === val %} selected="selected" {% endif %}>{{val|capitalize}}</option>
+        {% endfor %}
         </select>
       </div>
     </div>
     <div class="field">
       <label for="nick">Nickname:</label>
-      <input id="nick" name="nick" type="text" placeholder="The Siberian Crusher">
+      <input id="nick" name="nick" type="text" placeholder="The Siberian Crusher" value="{{player.nick}}">
     </div>
     <div class="required field {% if id %}disabled{% endif %}">
       <label for="email">Email:</label>
-      <input id="email" name="email" type="text" placeholder="Email address" value="{{email}}" {% if id %}disabled=""{% endif %}>
+      <input id="email" name="email" type="text" placeholder="Email address" value="{{player.email}}" {% if player.id %}disabled=""{% endif %}>
     </div>
-    {% if id %}
+    {% if player.id %}
     <div class="field">
       <div class="ui checkbox">
-        <input type="checkbox" id="retired" name="retired" />
+        <input type="checkbox" id="retired" name="retired" value="retired" {% if player.retired %}checked="checked" {% endif %}/>
         <label for="retired">Retire this player</label>
       </div>
     </div>
     {% endif %}
     <div class="ui buttons">
-      <button class="ui button positive" type="submit">{% if id %}Update{% else %}Create{% endif %}</button>
+      <button class="ui button positive" type="submit">{% if player.id %}Update{% else %}Create{% endif %}</button>
       <div class="or"></div>
       <a href="/" class="ui button">Cancel</a>
     </div>

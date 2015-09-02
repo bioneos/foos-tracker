@@ -19,7 +19,7 @@ router.get('/:id/edit', function(req, res, next) {
 
   // This is an edit, so attempt to find our player
   db.Player.find({ where : { id: req.params.id }}).then(function(player) {
-    if (player) res.render('player', { id: req.params.id,  name: player.name, email: player.email }) ;
+    if (player) res.render('player', { player: player }) ;
     else res.render('player', { idNotFound: true }) ;
   }) ;
 }) ;
@@ -95,7 +95,6 @@ router.get('/leaderboard', function(req, res, next) {
       }) ;
 
       leaderboard.push(playerObj) ;
-      console.log('added player ' + playerObj.name + '[' + leaderboard.length + ']') ;
     }) ;
 
     res.json(leaderboard) ;
