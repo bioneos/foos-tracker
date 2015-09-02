@@ -36,8 +36,7 @@ function initPlayerForm()
       // Add our optional player opts
       if (values.nick) playerOpts.nick = values.nick ;
       if (values.gender) playerOpts.gender = values.gender ;
-      // TODO: Will this work? retired could be false-y, but present
-      if (values.retired) playerOpts.retired = retired ;
+      playerOpts.retired = (values.retired) ? 1 : 0 ;
 
       createPlayer(playerOpts) ;
       return false ;
