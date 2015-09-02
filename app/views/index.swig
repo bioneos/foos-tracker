@@ -18,7 +18,7 @@
     <button class="ui tiny button" onclick="loadGameDay();" title="Last Game Day">GD</button>
     <button class="ui tiny button" onclick="loadWeek();" title="Last Week">W</button>
   </div>
-  <table id="leaderboard" class="ui celled padded table">
+  <table id="leaderboard" class="ui celled padded striped table">
     <thead>
       <tr>
         <th class="single line">Player</th>

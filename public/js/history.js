@@ -39,14 +39,16 @@ function initHomePage()
       console.log(players) ;
       $.each(players,  function(index) {
         var player = players[index] ;
+        var rowClass = (player.retired) ? 'disabled' : '' ;
+
         // Make a new row for this player
         var name = '<td><h4 class="ui header"><div class="content">' + player.name + '<div class="sub header">' + player.nick + '</div></div></h4></td>' ;
         var gf = '<td>' + player.goals + '</td>' ;
         var wins = '<td>' + player.wins + '</td>' ;
         var losses = '<td>' + player.losses + '</td>' ;
         var embs = '<td>' + player.embs + '</td>' ;
-        var winp = '<td>' + (player.wins / (player.wins + player.losses)) + '</td>' ;
-        lb.append('<tr>' + name + gf + wins + losses + embs + winp + '</tr>') ;
+        var winp = ((player.wins + player.losses) === 0) ? '<td>-</td>' : '<td>' + (player.wins / (player.wins + player.losses)) + '</td>' ;
+        lb.append('<tr class="' + rowClass + '">' + name + gf + wins + losses + embs + winp + '</tr>') ;
       }) ;
     }
   }) ;
