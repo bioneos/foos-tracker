@@ -127,5 +127,17 @@ function showWinner(winner)
 
   // New game button
   $('#winner').append('<button class="ui massive button" onclick="newGame();">Play a new Game</button>');
+  $('#winner').append('<button class="ui massive button" onclick="rematch();">Rematch</button>');
   $('#winner').fadeIn();
+}
+
+/**
+ * Rematch the current players in a new game
+ */
+function rematch()
+{
+  // Make a call to start a new game, that call will automatically redirect us
+  $.post('/game/' + gameId + '/rematch', { 'players' : Object.keys(game) }, function(data, status, xhr) {
+    window.location = '/game/' + data.rematchId;
+  }) ;
 }

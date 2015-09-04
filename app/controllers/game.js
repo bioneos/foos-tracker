@@ -41,6 +41,17 @@ router2.get('/:id/', function(req, res, next) {
   });
 });
 
+router2.post('/:id/rematch', function(req, res, next) {
+  db.Game.create({when: new Date()}).then(function(game) {
+    // Now get player details (id and name) so we can pass them to the template
+    db.Player.findAll({ where: { id : { $in : req.body.players } } }).then(function(dbPlayers) {
+      game.addPlayers(dbPlayers).then(function() {
+        res.json({ rematchId : game.id }) ;
+      })
+    }) ;
+  });
+}) ;
+
 /**
  * JSON routes:
  */
