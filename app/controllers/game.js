@@ -278,3 +278,14 @@ router.delete('/:id/goal/:gid', function(req, res, next) {
     }
   });
 });
+
+// Abort a game, in case of accidental rematch or new game press
+router2.delete('/:id', function(req, res, next) {
+  db.Game.findById(req.params.id).then(function(game) {
+    db.Goal.destroy({ where: { GameId: game.id }}).then(function() {
+      game.destroy().then(function () {
+        res.json({deleted: true});
+      });
+    }) ;
+  }) ;
+}) ;

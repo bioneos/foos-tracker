@@ -39,5 +39,5 @@
   </div>
   <div id="winner" class="ui inverted green segment center aligned"></div>
 
-  <div id="start-time" class="ui inverted segment footer">{{ gameStart.toString() }}</div>
+  <div id="start-time" class="ui inverted segment footer"><a href="#" onclick="abortGame(event) ;"><i  class="fa fa-trash"></i></a>{{ gameStart.toString() }}</div>
 {% endblock %}

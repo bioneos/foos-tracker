@@ -141,3 +141,16 @@ function rematch()
     window.location = '/game/' + data.rematchId;
   }) ;
 }
+
+function abortGame(event)
+{
+  event.stopPropagation() ;
+
+  $.ajax({
+    'url' : '/game/' + gameId,
+    'method' : 'DELETE',
+    'success' : function() {
+      window.location = '/' ;
+    }
+  }) ;
+}
