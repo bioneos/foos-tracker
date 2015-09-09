@@ -34,7 +34,8 @@ function initGamePage()
  */
 function addActivePlayer(player)
 {
-  var button = '<button class="ui button" onclick="score(' + player.id + ');">Goal!</button>';
+  var button = '<button class="ui button" onclick="score(' + player.id + ');">Goal!</button>' ;
+  button += '<a href="#" onclick="undoGoal(' + player.id + ', event)"><i class="fa fa-lg fa-undo"></i></a>';
   $('#players-list').append('<li class="ui column"><p>' + player.name + '</p>' + button + '</li>');
 
   // Add player to the Scoreboard
@@ -43,7 +44,7 @@ function addActivePlayer(player)
     '</div>');
 
   // Add player score to memory
-  game[player.id] = 0;
+  game[player.id] = [];
 }
 
 /**
@@ -79,12 +80,38 @@ function score(pid)
 {
   $.post('/games/' + gameId + '/goal/player/' + pid, {}, function(data, text, xhr) {
     // Update Scoreboard
-    game[pid]++;
-    $('#player-score-' + pid).children('h2').replaceWith('<h2>' + game[pid] + '</h2>');
+    game[pid].push(data.id);
+    $('#player-score-' + pid).children('h2').replaceWith('<h2>' + game[pid].length + '</h2>');
 
     // We have a winner (verify by talking to the server)
-    if (game[pid] >= gameThreshold) refreshGameInfo();
+    if (game[pid].length >= gameThreshold) refreshGameInfo();
   });
+}
+
+/**
+ * Remove an errant goal
+ */
+function undoGoal(pid, e)
+{
+  e.preventDefault() ;
+
+  if (!game[pid] || game[pid].length === 0) return ;
+
+  var lastGoal = game[pid].pop() ;
+  $.ajax({
+    'url' : '/games/' + gameId + '/goal/' + lastGoal,
+    'method' : 'DELETE',
+    'success' : function() {
+      // Our goal has already been removed from the stack, update our UI
+      $('#player-score-' + pid).children('h2').replaceWith('<h2>' + game[pid].length + '</h2>');
+    },
+    'error' : function() {
+      // Dont update our UI and put the failed goal back on the stack
+      game[pid].push(lastGoal) ;
+
+      // TODO: Should have a user warning here of the failure to remove the goal
+    }
+  }) ;
 }
 
 /**
@@ -97,16 +124,16 @@ function refreshGameInfo()
     for (var pid in data.players)
     {
       // Check for a winner
-      if (data.players[pid].goals >= data.threshold) 
+      if (data.players[pid].goals.length >= data.threshold)
       {
         // Just in case threshold was set wrong
-        if (!winner || data.players[pid].goals > winner.goals)
+        if (!winner || data.players[pid].goals.length > winner.goals)
           winner = data.players[pid];
       }
 
       // Update player score
       game[pid] = data.players[pid].goals;
-      $('#player-score-' + pid).children('h2').replaceWith('<h2>' + game[pid] + '</h2>');
+      $('#player-score-' + pid).children('h2').replaceWith('<h2>' + game[pid].length + '</h2>');
     } 
 
     // Close the game out

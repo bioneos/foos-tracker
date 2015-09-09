@@ -138,14 +138,14 @@ router.get('/:id', function (req, res, next) {
             id: player.id,
             name: player.name,
             email: player.email,
-            goals: 0
+            goals: []
           };
         });
 
         // Now record actual counts
         game.getGoals().then(function(goals) {
           goals.forEach(function(goal) {
-            targetGame.players[goal.PlayerId].goals++;
+            targetGame.players[goal.PlayerId].goals.push(goal.id);
           });
 
           // Send back data
