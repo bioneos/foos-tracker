@@ -34,9 +34,10 @@ function initGamePage()
  */
 function addActivePlayer(player)
 {
-  var button = '<button class="ui button" onclick="score(' + player.id + ');">Goal!</button>' ;
+  var button = '<a href="#" onclick="removeActivePlayer(' + player.id + ')"><i class="fa fa-lg fa-remove"></i></a>' ;
+  button += '<button class="ui button" onclick="score(' + player.id + ');">Goal!</button>' ;
   button += '<a href="#" onclick="undoGoal(' + player.id + ', event)"><i class="fa fa-lg fa-undo"></i></a>';
-  $('#players-list').append('<li class="ui column"><p>' + player.name + '</p>' + button + '</li>');
+  $('#players-list').append('<li class="ui column" id="player-list-' + player.id + '"><p>' + player.name + '</p>' + button + '</li>');
 
   // Add player to the Scoreboard
   $('#scoreboard').append('<div class="ui column" id="player-score-' + player.id + '">' + 
@@ -45,6 +46,19 @@ function addActivePlayer(player)
 
   // Add player score to memory
   game[player.id] = [];
+}
+
+function removeActivePlayer(playerId)
+{
+  if (gameInProgress) return false ;
+
+  // Get our player name from the DOM
+  var name = $('#player-list-' + playerId + ' p').text() ;
+
+  // Remove the player from the UI and add them back to the player list
+  $('#player-list-' + playerId).remove() ;
+  $('#player-score-' + playerId).remove() ;
+  addAvailablePlayer({ 'id' : playerId,  'name' : name }) ;
 }
 
 /**
@@ -78,6 +92,9 @@ function joinGame()
  */
 function score(pid)
 {
+  // When a goal is scored, the game is officially in progress
+  gameInProgress = true ;
+
   $.post('/games/' + gameId + '/goal/player/' + pid, {}, function(data, text, xhr) {
     // Update Scoreboard
     game[pid].push(data.id);
@@ -132,6 +149,11 @@ function refreshGameInfo()
       }
 
       // Update player score
+      if (data.players[pid].goals.length > 0)
+      {
+        gameInProgress = true ;
+      }
+
       game[pid] = data.players[pid].goals;
       $('#player-score-' + pid).children('h2').replaceWith('<h2>' + game[pid].length + '</h2>');
     } 

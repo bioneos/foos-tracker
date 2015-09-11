@@ -2,6 +2,7 @@
 
 {% block scripts %}
 <script>
+  var gameInProgress = false ;
   var gameStart = new Date(Date.parse('{{ gameStart.toISOString() }}'));
   var gameThreshold = {{gameThreshold}};
   var gameId = {{gameId}};
