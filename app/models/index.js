@@ -2,9 +2,11 @@ var fs = require('fs'),
   path = require('path'),
   Sequelize = require('sequelize'),
   config = require('../../config/config'),
+  env = process.env.NODE_ENV || 'development';
   db = {};
 
 var sequelize = new Sequelize(config.db, {
+  logging: (env == 'production') ? false : console.log,
   storage: config.storage
 });
 
