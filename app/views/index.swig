@@ -18,19 +18,22 @@
     <button class="ui tiny button" onclick="loadGameDay();" title="Last Game Day">GD</button>
     <button class="ui tiny button" onclick="loadWeek();" title="Last Week">W</button>
   </div>
-  <table id="leaderboard" class="ui celled padded striped table">
-    <thead>
-      <tr>
-        <th class="single line">Player</th>
-        <th>Goals For</th>
-        <th>Wins</th>
-        <th>Loses</th>
-        <th>Embarrassments</th>
-        <th>Win %</th>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
+  <div class="ui segment basic" id="leaderboard-wrap">
+    <table id="leaderboard" class="ui celled padded striped table unstackable">
+      <thead>
+        <tr>
+          <th class="single line">Player</th>
+          <th>Goals For</th>
+          <th class="record">Record</th>
+          <th class="record-fw">Wins</th>
+          <th class="record-fw">Loses</th>
+          <th class="record-fw">Embarrassments</th>
+          <th>Win %</th>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
 {% endblock %}
 
 {% block scripts %}

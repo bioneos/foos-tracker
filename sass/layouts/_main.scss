@@ -1,0 +1,45 @@
+/**
+ * Template layout
+ **/
+header #main-title
+{
+  margin-left: 20px;
+}
+
+#main-page-wrap
+{
+  padding-top: 65px;
+}
+
+/**
+ * Home page related
+ **/
+th.record,
+td.record
+{
+  display: block;
+
+  @media screen and (min-width: $break-tablet)
+  {
+    display: none;
+  }
+}
+
+th.record-fw,
+td.record-fw
+{
+  display: none;
+  @media screen and (min-width: $break-tablet)
+  {
+    display: table-cell;
+  }
+}
+
+
+/**
+ * Game page related
+ **/
+#winner
+{
+  display: none;
+}
