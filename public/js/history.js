@@ -10,7 +10,7 @@ function initHomePage()
     if (data && data.games)
     {
       if (data.games.length === 0)
-        $('#last-game').append('<h2>No Game History!</h2>');
+        $('#last-game').append('<h2 style="text-align:center">No games played in the last week</h2>');
       else
       {
         var when = new Date(Date.parse(data.games[0].when));
@@ -40,15 +40,23 @@ function initHomePage()
       $.each(players,  function(index) {
         var player = players[index] ;
         var rowClass = (player.retired) ? 'disabled' : '' ;
+        if (player.nick === null) player.nick = '';
 
         // Make a new row for this player
         var name = '<td><h4 class="ui header"><div class="content">' + player.name + '<div class="sub header">' + player.nick + '</div></div></h4></td>' ;
         var gf = '<td>' + player.goals + '</td>' ;
-        var wins = '<td>' + player.wins + '</td>' ;
-        var losses = '<td>' + player.losses + '</td>' ;
-        var embs = '<td>' + player.embs + '</td>' ;
-        var winp = ((player.wins + player.losses) === 0) ? '<td>-</td>' : '<td>' + (player.wins / (player.wins + player.losses)) + '</td>' ;
-        lb.append('<tr class="' + rowClass + '">' + name + gf + wins + losses + embs + winp + '</tr>') ;
+        var record = '<td class="record">' + player.wins + '/' + player.losses + ' (' + player.embs + ')</td>' ;
+        var wins = '<td class="record-fw">' + player.wins + '</td>' ;
+        var losses = '<td class="record-fw">' + player.losses + '</td>' ;
+        var embs = '<td class="record-fw">' + player.embs + '</td>' ;
+        var winpStr = '<td>-</td>';
+        if ((player.wins + player.losses) !== 0)
+        {
+          var winp = (player.wins / (player.wins + player.losses));
+          winp = Math.floor(winp * 10000) / 100;
+          winpStr = '<td>' + winp + '%</td>';
+        }
+        lb.append('<tr class="' + rowClass + '">' + name + gf + record + wins + losses + embs + winpStr + '</tr>') ;
       }) ;
     }
   }) ;
@@ -59,6 +67,7 @@ var viz = {};
 
 /**
  * Setup visualization. Using data from the most recent game.
+ * TODO: http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js
  */
 function setupVisualization()
 {

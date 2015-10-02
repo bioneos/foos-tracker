@@ -1,14 +1,7 @@
-#main-page-wrap
-{
-  margin-top: 65px;
-}
+@import "variables";
 
-header #main-title
-{
-  margin-left: 20px;
-}
+@import "layouts/main";
 
-#winner
-{
-  display: none;
-}
+/* @import "components/*"; */
+
+/* @import "theme"; */

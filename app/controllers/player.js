@@ -1,19 +1,24 @@
 var express = require('express'),
   router = express.Router(),
+  util = require('../../util'),
   db = require('../models');
 
 module.exports = function (app) {
   app.use('/players', router);
 };
 
+// Page templates:
 /**
- * Page templates:
+ * Create a Player
  */
 router.get('/create', function(req, res, next) {
   // Just serve up our create UI
   res.render('player') ;
 }) ;
 
+/**
+ * Edit a Player
+ */
 router.get('/:id/edit', function(req, res, next) {
   if (isNaN(req.params.id)) res.status(400).end() ;
 
@@ -24,12 +29,16 @@ router.get('/:id/edit', function(req, res, next) {
   }) ;
 }) ;
 
+/**
+ * Stats for a Player
+ */
 router.get('/:id/stats', function(req, res, next) {
-
+  // TODO
 }) ;
 
+// JSON routes:
 /**
- * JSON routes:
+ * Get all Players
  */
 router.get('/all', function (req, res, next) {
   db.Player.findAll().then(function (players) {
@@ -50,57 +59,55 @@ router.get('/all', function (req, res, next) {
   });
 });
 
-// Leaderboard of all players
+/**
+ * Get the all-time record data for every player in the database.
+ */
 router.get('/leaderboard', function(req, res, next) {
-  var leaderboard = [] ;
+  var leaderboard = {} ;
 
   // Load up our players for our game summary table
-  db.Player.findAll({ 'include' : [ db.Game, db.Goal ]}).then(function (players) {
+  db.Player.findAll().then(function (players) {
+    // 
+    // Create the leaderboard positions
     players.forEach(function(player) {
-      // Get the players games
       var playerObj = {
+        'id' : player.id,
         'name' : player.name,
         'nick' : player.nick,
-        'retired' : player.retired || 0,
+        'retired' : player.retired || false,
         'wins' : 0,
         'losses' : 0,
         'embs' : 0,
-        'goals' : player.Goals.length
+        'goals' : 0
       } ;
+      leaderboard[player.id] = playerObj;
+    });
 
-      // For every game this player is in, tally our goals/wins/losses/embarrassments
-      player.Games.forEach(function(game) {
-        // If the game has no winner, the game is either on going or in error, so skip it
-        if (!game.winner) return ;
+    // 
+    // Now load all games to determine records
+    db.Game.findAll({ 'include' : [ db.Player, db.Goal ]}).then(function (games) {
+      games.forEach(function(game) {
+        var gpp = util.getGoalsPerPlayerSync(game);
+        //console.log("Game %d: ", game.id, gpp);
+        Object.keys(gpp).forEach(function(pid) {
+          // Win/Loss
+          if (game.winner == pid) leaderboard[pid].wins++;
+          else if (game.winner !== null) leaderboard[pid].losses++;
+          // Embarassments
+          if (game.winner !== null && gpp[pid] == 0) leaderboard[pid].embs++;
+          // Goals For
+          leaderboard[pid].goals += gpp[pid];
+        });
+      });
 
-        // Handle our outcomes
-        if (game.winner === player.id)
-        {
-          playerObj.wins++ ;
-        }
-        else
-        {
-          // Determine if the player was embarrassed by checking if any of their goals belong to this game
-          var shutout = 1 ;
-          player.Goals.forEach(function(goal) {
-            if (goal.GameId === game.id)
-            {
-              shutout = 0 ;
-              return ;
-            }
-          }) ;
-          playerObj.embs += shutout ;
-          playerObj.losses++ ;
-        }
-      }) ;
-
-      leaderboard.push(playerObj) ;
-    }) ;
-
-    res.json(leaderboard) ;
+      res.json(leaderboard);
+    });
   });
-}) ;
+});
 
+/**
+ * Get a Player's data.
+ */
 router.get('/:id', function (req, res, next) {
   db.Player.find({ where: { id: req.params.id }}).then(function (player) {
     // Get Player's last game?
@@ -109,7 +116,9 @@ router.get('/:id', function (req, res, next) {
   });
 });
 
-// Update a player's name (email cannot change)
+/**
+ * Update a player's name (email cannot change)
+ */
 router.put('/:id', function(req, res, next) {
   db.Player.find({ where: { id: req.params.id, email: req.body.email }}).then(function (player) {
     if (!player)
@@ -130,7 +139,9 @@ router.put('/:id', function(req, res, next) {
   });
 });
 
-// Create
+/**
+ * Create a Player
+ */
 router.post('/create', function(req, res, next) {
   db.Player.find({ where: { email: req.body.email }}).then(function (player) {
     if (player)
@@ -152,7 +163,9 @@ router.post('/create', function(req, res, next) {
   });
 });
 
-// Delete a player
+/**
+ * Delete a player
+ */
 router.delete('/:id', function(req, res, next) {
   db.Player.find({ where: { id: req.params.id }}).then(function (player) {
     if (!player)

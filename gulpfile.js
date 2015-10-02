@@ -16,13 +16,13 @@ gulp.task('init', function() {
 
 // Lint Task
 gulp.task('lint', function() {
-  gulp.src('./public/js/*.js')
+  gulp.src('./public/js/**/*.js')
     .pipe(jshint())
     .pipe(jshint.reporter('default', {verbose: true}));
 });
 
 gulp.task('sass', function () {
-  gulp.src('./sass/*.scss')
+  gulp.src('./sass/style.scss')
     .pipe(plumber())
     .pipe(sass().on('error', sass.logError))
     .pipe(gulp.dest('./public/css'))
@@ -30,7 +30,7 @@ gulp.task('sass', function () {
 });
 
 gulp.task('watch', function() {
-  gulp.watch('./sass/*.scss', ['sass']);
+  gulp.watch('./sass/**/*.scss', ['sass']);
 });
 
 gulp.task('develop', ['init'], function () {
