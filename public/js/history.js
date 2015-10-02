@@ -40,6 +40,7 @@ function initHomePage()
       $.each(players,  function(index) {
         var player = players[index] ;
         var rowClass = (player.retired) ? 'disabled' : '' ;
+        if (player.nick === null) player.nick = '';
 
         // Make a new row for this player
         var name = '<td><h4 class="ui header"><div class="content">' + player.name + '<div class="sub header">' + player.nick + '</div></div></h4></td>' ;
@@ -52,7 +53,7 @@ function initHomePage()
         if ((player.wins + player.losses) !== 0)
         {
           var winp = (player.wins / (player.wins + player.losses));
-          winp = Math.floor(winp * 10000) / 10000;
+          winp = Math.floor(winp * 10000) / 100;
           winpStr = '<td>' + winp + '%</td>';
         }
         lb.append('<tr class="' + rowClass + '">' + name + gf + record + wins + losses + embs + winpStr + '</tr>') ;
