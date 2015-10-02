@@ -48,8 +48,14 @@ function initHomePage()
         var wins = '<td class="record-fw">' + player.wins + '</td>' ;
         var losses = '<td class="record-fw">' + player.losses + '</td>' ;
         var embs = '<td class="record-fw">' + player.embs + '</td>' ;
-        var winp = ((player.wins + player.losses) === 0) ? '<td>-</td>' : '<td>' + (player.wins / (player.wins + player.losses)) + '</td>' ;
-        lb.append('<tr class="' + rowClass + '">' + name + gf + record + wins + losses + embs + winp + '</tr>') ;
+        var winpStr = '<td>-</td>';
+        if ((player.wins + player.losses) !== 0)
+        {
+          var winp = (player.wins / (player.wins + player.losses));
+          winp = Math.floor(winp * 10000) / 10000;
+          winpStr = '<td>' + winp + '%</td>';
+        }
+        lb.append('<tr class="' + rowClass + '">' + name + gf + record + wins + losses + embs + winpStr + '</tr>') ;
       }) ;
     }
   }) ;
