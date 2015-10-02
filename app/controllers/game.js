@@ -289,3 +289,27 @@ router2.delete('/:id', function(req, res, next) {
     }) ;
   }) ;
 }) ;
+
+// Set the threshold of a game
+router2.put('/:id/threshold', function(req, res, next) {
+  db.Game.findById(req.params.id, { 'include' : db.Goal }).then(function(game) {
+    if (!game)
+    {
+      res.status(404).json({ 'error' : 'Invalid Game ID' }) ;
+    }
+    else if (!game.Goals || game.Goals.length)
+    {
+      res.status(403).json({ 'error' : 'Game is already in progress' }) ;
+    }
+    else if (isNaN(req.body.threshold))
+    {
+      res.status(400).json({ 'error' : 'The threshold must be an integer' }) ;
+    }
+    else
+    {
+      game.updateAttributes({ 'threshold' : req.body.threshold }).then(function() {
+        res.json({ 'success' : 'Threshold updated to ' + req.body.threshold }) ;
+      })
+    }
+  }) ;
+}) ;

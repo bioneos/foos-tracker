@@ -203,3 +203,35 @@ function abortGame(event)
     }
   }) ;
 }
+
+/**
+ * Update the threshold of a new game (one with no goals)
+ */
+function setThreshold(newThresh)
+{
+  if (isInProgress())
+  {
+    console.debug('Game is in session, cannot change threshold') ;
+
+    return false ;
+  }
+
+  $.ajax({
+    'url' : '/game/' + gameId + '/threshold',
+    'method' : 'PUT',
+    'data' : { 'threshold' : newThresh },
+    'success' : function(data) {
+      console.debug(data) ;
+    }
+  })
+}
+
+/**
+ * Utility function to determine if the game is in progress (goals exist)
+ **/
+function isInProgress()
+{
+  return Object.keys(game).reduce(function(prevGoals, currentPlayerId) {
+    return prevGoals + game[currentPlayerId].length ;
+  }, 0) ;
+}

@@ -40,5 +40,13 @@
   </div>
   <div id="winner" class="ui inverted green segment center aligned"></div>
 
-  <div id="start-time" class="ui inverted segment footer"><a href="#" onclick="abortGame(event) ;"><i  class="fa fa-trash"></i></a>{{ gameStart.toString() }}</div>
+  <div id="game-info" class="ui inverted segment footer">
+    <div id="start-time">
+      <a href="#" onclick="abortGame(event) ;"><i  class="fa fa-trash"></i></a>{{ gameStart.toString() }}
+    </div>
+    <div id="game-config" class="ui right labeled action input">
+      <input id="threshold" type="text" placeholder="Goal Threshold" value="5">
+      <div class="ui button" onclick="setThreshold($('#threshold').val())"><i class="fa fa-futbol-o"></i></div>
+    </div>
+  </div>
 {% endblock %}
