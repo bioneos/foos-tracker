@@ -1,9 +1,10 @@
 var express = require('express'),
-  router = express.Router(),
-  router2 = express.Router(),
+  gamesRouter = express.Router(),
+  gameRouter = express.Router(),
   Sequelize = require('sequelize'),
   db = require('../models');
 
+/** Helper methods **/
 /**
  * Get a static list of unique Players given a list of Games.
  */
@@ -25,15 +26,20 @@ function getStaticPlayerList(games)
   return list;
 }
 
+/**
+ * Expose our configuration function (module-pattern)
+ */
 module.exports = function (app) {
-  app.use('/games', router);
-  app.use('/game', router2);
+  app.use('/games', gamesRouter);
+  app.use('/game', gameRouter);
 };
 
+
+/** Internal definitions (Routes) **/
 /**
  * Page templates:
  */
-router2.get('/:id/', function(req, res, next) {
+gameRouter.get('/:id/', function(req, res, next) {
   db.Game.find({ where: { id: req.params.id }}).then(function (game) {
     // TODO: redirect to index but put the messages in a session (so URL is updated)
     if (!game) res.render('index', {messages: ["Cannot find that Game!"] });
@@ -41,7 +47,11 @@ router2.get('/:id/', function(req, res, next) {
   });
 });
 
-router2.post('/:id/rematch', function(req, res, next) {
+/**
+ * JSON routes:
+ */
+// Start a rematch (and send back the new gameId)
+gameRouter.post('/:id/rematch', function(req, res, next) {
   db.Game.create({when: new Date()}).then(function(game) {
     // Now get player details (id and name) so we can pass them to the template
     db.Player.findAll({ where: { id : { $in : req.body.players } } }).then(function(dbPlayers) {
@@ -52,12 +62,20 @@ router2.post('/:id/rematch', function(req, res, next) {
   });
 }) ;
 
-/**
- * JSON routes:
- */
+// Abort a game, in case of accidental rematch or new game press
+gameRouter.delete('/:id', function(req, res, next) {
+  db.Game.findById(req.params.id).then(function(game) {
+    db.Goal.destroy({ where: { GameId: game.id }}).then(function() {
+      game.destroy().then(function () {
+        res.json({deleted: true});
+      });
+    }) ;
+  }) ;
+}) ;
+
 // See the list of the game history (most recent first)
 // TODO: pagination eventually?
-router.get('/all', function (req, res, next) {
+gamesRouter.get('/all', function (req, res, next) {
   db.Game.findAll({ order: [['when', 'DESC']]}).then(function (games) {
     // Just return list of id / timestamps
     var ret = {games: []};
@@ -71,7 +89,7 @@ router.get('/all', function (req, res, next) {
 });
 
 // See the list of the games for the last week (for the homepage)
-router.get('/last-week', function (req, res, next) {
+gamesRouter.get('/last-week', function (req, res, next) {
   // Calculate midnight of the current day
   var midnight = new Date();
   midnight.setHours(0, 0, 0, 0);
@@ -118,7 +136,7 @@ router.get('/last-week', function (req, res, next) {
 });
 
 // Details for a single game
-router.get('/:id', function (req, res, next) {
+gamesRouter.get('/:id', function (req, res, next) {
   // Return value
   var targetGame = {};
 
@@ -157,7 +175,7 @@ router.get('/:id', function (req, res, next) {
 });
 
 // Create
-router.post('/create', function(req, res, next) {
+gamesRouter.post('/create', function(req, res, next) {
   db.Game.create({when: new Date()}).then(function(game) {
     res.json({success: true, id: game.id});
   });
@@ -167,7 +185,7 @@ router.post('/create', function(req, res, next) {
  * Helper methods.
  */
 // Add a Player to an existing game
-router.post('/:id/add/player/:pid', function(req, res, next) {
+gamesRouter.post('/:id/add/player/:pid', function(req, res, next) {
   console.log('Adding a Player to a Game');
   db.Game.find({ where: { id: req.params.id }}).then(function (game) {
     if (!game) res.json({error: 'Invalid Game ID'});
@@ -187,7 +205,7 @@ router.post('/:id/add/player/:pid', function(req, res, next) {
 });
 
 // Remove a player from a game (they must not have any goals)
-router.post('/:id/remove/player/:pid', function(req, res, next) {
+gamesRouter.post('/:id/remove/player/:pid', function(req, res, next) {
   console.log('Removing a Player from a Game');
   db.Game.find({ where: { id: req.params.id }}).then(function (game) {
     if (!game) res.json({error: 'Invalid Game ID'});
@@ -221,7 +239,7 @@ router.post('/:id/remove/player/:pid', function(req, res, next) {
 });
 
 // Score a goal
-router.post('/:id/goal/player/:pid', function(req, res, next) {
+gamesRouter.post('/:id/goal/player/:pid', function(req, res, next) {
   db.Game.find({ where: { id: req.params.id }}).then(function (game) {
     if (!game) res.json({error: 'Invalid Game ID'});
     else
@@ -260,7 +278,7 @@ router.post('/:id/goal/player/:pid', function(req, res, next) {
 });
 
 // Undo a goal (delete)
-router.delete('/:id/goal/:gid', function(req, res, next) {
+gamesRouter.delete('/:id/goal/:gid', function(req, res, next) {
   console.log('Undoing accidental goal button press...');
   db.Game.find({ where: { id: req.params.id }}).then(function (game) {
     if (!game) res.json({error: 'Invalid Game ID'});
@@ -278,14 +296,3 @@ router.delete('/:id/goal/:gid', function(req, res, next) {
     }
   });
 });
-
-// Abort a game, in case of accidental rematch or new game press
-router2.delete('/:id', function(req, res, next) {
-  db.Game.findById(req.params.id).then(function(game) {
-    db.Goal.destroy({ where: { GameId: game.id }}).then(function() {
-      game.destroy().then(function () {
-        res.json({deleted: true});
-      });
-    }) ;
-  }) ;
-}) ;
