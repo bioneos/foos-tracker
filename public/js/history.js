@@ -1,5 +1,414 @@
+// Global namespace for caching some of the configured d3 settings
+var viz = {};
+// Cached game history for the homepage (stores the previous week's data)
 var gameHistory = {};
 
+/**
+ * Initialize the History page and all controls.
+ */
+function initHistoryPage()
+{
+  $.get('/games/all', {}, function(data, text, xhr) {
+    // Setup the drop-down for GameByTime
+    data.games.forEach(function(game) {
+      var when = new Date(Date.parse(game.when));
+      var h = when.getHours();
+      var m = when.getMinutes() < 10 ? "0" + when.getMinutes() : when.getMinutes();
+      var time = (h > 12) ? (h - 12) + ':' + m + 'pm' : h + ':' + m + 'am';
+      var date = getDateShortDisplay(when) + ' @ ' + time;
+      $('#game-goals-by-time').append('<option value=' + game.id + '>' + date + '</option>');
+    });
+    
+    // Setup our D3 graph and settings
+    setupGoalsByTime("#history-graph");
+
+    // Setup the dropdown behavior for SemanticUI, and our events
+    $('.ui.dropdown').dropdown();
+    $('#game-goals-by-time').on('change', changeGameGoalsByTime);
+
+    // Handle resize events
+    $(window).on('resize', function() {
+      updateWindow("#history-graph");
+    });
+  });
+}
+
+/**
+ * Setup viz for the history page
+ */
+function setupGoalsByTime(container)
+{
+  viz.bytime = {};
+  viz.bytime.margin = { top: 20, right: 50, bottom: 20, left: 50 };
+  viz.bytime.height = 500;
+  viz.bytime.width = $(container).width() - viz.bytime.margin.left - viz.bytime.margin.right;
+
+  // TODO: If not splitting this code to homepage / history, some of the
+  //   common setup for the "viz" object should be in a separate method...
+  // Define our palette
+  viz.color = d3.scale.ordinal().range(["#4e9a06", "#057740", "#8ea606", 
+    "#84cf3e", "#30a06a", "#c8df43",
+    "#295500", "#004222", "#4e5b00"]);
+  viz.bytime.x = d3.time.scale().range([0, viz.bytime.width])
+    .domain([new Date(), new Date()]);
+  viz.bytime.y = d3.scale.linear().range([viz.bytime.height, 0])
+    .domain([0, 5]);
+  // The line generation function
+  viz.bytime.line = d3.svg.line()
+    .interpolate("step-after")
+    //.interpolate("linear")
+    //.interpolate("cardinal").tension(.8)
+    .x(function(d) { return viz.bytime.x(new Date(d.when)); })
+    .y(function(d) { return viz.bytime.y(d.num); });
+
+  viz.bytime.xAxis = d3.svg.axis()
+    .scale(viz.bytime.x)
+    .tickFormat(d3.time.format("%_I:%M%p"))
+    .orient("bottom");
+  viz.bytime.yAxis = d3.svg.axis()
+    .scale(viz.bytime.y)
+    .tickFormat(d3.format("d"))
+    .orient("left");
+
+  // Setup the SVG object (one time)
+  var svg = d3.select("#history-graph").append("svg")
+    .attr("width", $(container).width())
+    .attr("height", viz.bytime.height + viz.bytime.margin.top + viz.bytime.margin.bottom)
+  .append("g")
+    .attr('class', 'canvas')
+    .attr("transform", "translate(" + viz.bytime.margin.left + ", " + viz.bytime.margin.top + ")");
+
+  // Setup the initial graph axes
+  svg.append("g")
+    .attr("class", "y axis")
+    .call(viz.bytime.yAxis);
+  svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0, " + viz.bytime.height + ")")
+    .call(viz.bytime.xAxis);
+
+/*
+  // TEMP: (TODO: support this format)
+  var data = {
+    "Davis": [
+      {num:0, when:"2015-11-11T16:40:11.949Z"},
+      {num:1, when:"2015-11-11T16:42:11.949Z"},
+      {num:2, when:"2015-11-11T16:42:19.390Z"},
+      {num:3, when:"2015-11-11T16:43:18.390Z"},
+      {num:4, when:"2015-11-11T16:52:12.390Z"},
+      {num:5, when:"2015-11-11T16:54:02.390Z"}
+    ],
+    "Smees": [
+      {num:0, when:"2015-11-11T16:40:11.949Z"},
+      {num:1, when:"2015-11-11T16:48:12.390Z"}
+    ]
+  };
+  var data2 = {
+    "Davis": [
+      {num:0, when:"2015-11-10T16:40:21.949Z"},
+      {num:1, when:"2015-11-10T16:42:21.949Z"},
+      {num:2, when:"2015-11-10T16:42:39.390Z"},
+      {num:3, when:"2015-11-10T16:43:08.390Z"},
+      {num:4, when:"2015-11-10T16:46:02.390Z"}
+    ],
+    "Smees2": [
+      {num:0, when:"2015-11-10T16:40:11.949Z"},
+      {num:1, when:"2015-11-10T16:48:12.390Z"},
+      {num:2, when:"2015-11-10T16:49:12.390Z"},
+      {num:3, when:"2015-11-10T16:50:12.390Z"},
+      {num:4, when:"2015-11-10T16:51:12.390Z"},
+      {num:5, when:"2015-11-10T16:52:12.390Z"}
+    ],
+    "Michael": [
+      {num:0, when:"2015-11-10T16:40:11.949Z"},
+      {num:1, when:"2015-11-10T16:46:12.390Z"}
+    ]
+  };
+  temp = new Date("2015-11-11T16:40:11.949Z");
+  xMax = temp;
+  d3.map(data).forEach(function(nick, goals) {
+    playerMax = d3.max(goals, function(d) { return new Date(d.when); });
+    xMax = d3.max([xMax, playerMax]);
+  });
+  x.domain([temp, xMax]);
+  viz.color.domain(d3.keys(data));
+
+
+  // And our line graphs
+  var player = svg.selectAll(".player")
+    .data(d3.entries(data), function(d) { return d.key; })
+    .enter()
+    .append("g")
+      .style("stroke", function(d) { return viz.color(d.key); })
+      .attr("class", "player");
+  player.append("path")
+    .attr("class", "line")
+    .attr("d", function(d) { return viz.line(d.value); })
+    .style("stroke", function(d) { return viz.color(d.key); });
+  player.selectAll("circle")
+    .data(function(d) { return d.value; }).enter()
+    .append("circle")
+      .attr("class", "line-point")
+      .attr("cx", function(d) { return x(new Date(d.when)); })
+      .attr("cy", function(d) { return y(d.num); })
+      .attr("r", 3.5);
+  player.append("text")
+    .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
+    .attr("transform", function(d) { return "translate(" + x(new Date(d.value.when)) + "," + y(d.value.num) + ")"; })
+    .attr("dx", 7)
+    .attr("class", "nick")
+    .style("stroke-width", 0)
+    //.style("fill", function(d) { return viz.color(d.key); })
+    .style("fill", "#444")
+    .text(function(d) { return d.key; })
+  window.setTimeout(function() {
+    y.domain([0,6]);
+    temp = new Date("2015-11-10T16:40:11.949Z");
+    xMax = temp;
+    d3.map(data2).forEach(function(nick, goals) {
+      playerMax = d3.max(goals, function(d) { return new Date(d.when); });
+      xMax = d3.max([xMax, playerMax]);
+    });
+    x.domain([temp, xMax]);
+    viz.color.domain(d3.keys(data2));
+    svg.select(".y.axis").call(yAxis);
+    svg.select(".x.axis").call(xAxis);
+    var test = svg.selectAll(".player").data(d3.entries(data2), function(d) { return d.key; });
+
+    test.select(".line").transition().duration(1000)
+      .attr("d", function(d) { return viz.line(d.value); });
+    var circles = test.selectAll("circle")
+      .data(function(d) { return d.value; });
+    // Old data
+    circles.transition().duration(1000)
+        .attr("cx", function(d) { return x(new Date(d.when)); })
+        .attr("cy", function(d) { return y(d.num); });
+    // New data
+    circles.enter()
+      .append("circle")
+      .attr("class", "line-point").attr("r", 3.5).attr("cx", 0).attr("cy", height)
+    .transition().duration(1000)
+      .attr("cx", function(d) { return x(new Date(d.when)); })
+      .attr("cy", function(d) { return y(d.num); });
+    // Removed data
+    circles.exit().transition().duration(1000)
+      .attr("cx", 0).attr("cy", height)
+      .remove();
+    test.select(".nick")
+      .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
+      .transition().duration(1000)
+      .attr("transform", function(d) { return "translate(" + x(new Date(d.value.when)) + "," + y(d.value.num) + ")"; });
+
+    // Add players
+    var player = test.enter()
+      .append("g")
+        .style("stroke", function(d) { return viz.color(d.key); })
+        .attr("class", "player");
+    player.append("path")
+      .attr("class", "line")
+      .style("stroke", function(d) { return viz.color(d.key); })
+ //     .style("stroke-width", 0)
+      // TODO: Make this out of the threshold (# segments == threshold
+      .attr("d", "M0," + height + "L0," + height + "L0," + height + "L0," + height + "L0," + height + "L0," + height)
+    .transition().duration(1000)
+//      .attr("d", "M0," + height + "L1000," + (height - 100))
+      .attr("d", function(d) { return viz.line(d.value); })
+      .style("stroke-width", 1.5);
+    player.selectAll("circle")
+      .data(function(d) { return d.value; }).enter()
+      .append("circle")
+        .attr("class", "line-point")
+        .attr("r", 3.5)
+        .attr("cx", 0).attr("cy", height)
+      .transition().duration(1000)
+        .attr("cx", function(d) { return x(new Date(d.when)); })
+        .attr("cy", function(d) { return y(d.num); });
+    player.append("text")
+      .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
+      .style("stroke-width", 0)
+      //.style("fill", function(d) { return viz.color(d.key); })
+      .style("fill", "none")
+      .attr("dx", 7)
+      .attr("transform", "translate(0," + height + ")")
+    .transition().duration(1000)
+      .attr("transform", function(d) { return "translate(" + x(new Date(d.value.when)) + "," + y(d.value.num) + ")"; })
+      .attr("class", "nick")
+      .style("stroke-width", 0)
+      //.style("fill", function(d) { return viz.color(d.key); })
+      .style("fill", "#444")
+      .text(function(d) { return d.key; })
+
+    // Remove players
+    test.exit().selectAll("circle")
+      .transition().duration(1000)
+        .attr("cx", 0)
+        .attr("cy", height)
+      .remove();
+    test.exit().selectAll(".line")
+      .transition().duration(1000)
+      // TODO: This has to have the correct number of segments! (need a method for this):
+        .attr("d", "M0," + height + "H0V" + height)
+      .remove();
+    test.exit().selectAll(".nick")
+      .transition().duration(1000)
+        .attr("cx", 0).attr("cy", height)
+      .remove();
+    // At the end of the transition, remove the player layer entirely
+    test.exit().transition().duration(1000).remove();
+      }, 2000);*/
+}
+
+/**
+ * The select was changed for the single game Goals by Time.
+ */
+function changeGameGoalsByTime()
+{
+console.log("CALLED");
+  var gameId = $('#game-goals-by-time').val();
+  if (gameId <= 0) loadGameGoalsByTime({});
+  else
+  {
+    // Grab data from the server
+    $.ajax('/history/game/' + gameId, {
+      dataType: 'json',
+      success: function(data, text, jqxhr) {
+        loadGameGoalsByTime(data);
+      },
+      error: function(jqxhr, text, error) {
+        // TODO: maybe setup image and color in case this is a warning?
+        loadGameGoalsByTime({});
+        $('.ui.modal .description').empty();
+        $('.ui.modal .description').append("<p>" + jqxhr.responseJSON.error + "</p>");
+        $('.ui.modal').modal('show');
+      }
+    });
+  }
+}
+
+/**
+ * Display game data for a single game (goals by time).
+ * NOTE: Must be able to handle an empty object to unload the graph...
+ */
+function loadGameGoalsByTime(gameData)
+{
+  // First create a game skeleton, if passed an empty object.
+  if (!gameData.when)
+  {
+    gameData.when = new Date();
+    gameData.threshold = 5;
+    gameData.goals = {};
+  }
+
+  // Now adjust our domains
+  var svg = d3.select('#history-graph svg .canvas');
+  viz.bytime.y.domain([0, gameData.threshold]);
+  xMax = new Date(gameData.when);
+  d3.map(gameData.goals).forEach(function(nick, goals) {
+    playerMax = d3.max(goals, function(d) { return new Date(d.when); });
+    xMax = d3.max([xMax, playerMax]);
+  });
+  viz.bytime.x.domain([new Date(gameData.when), xMax]);
+  viz.color.domain(d3.keys(gameData.goals));
+
+  // Refresh axes
+  svg.select(".y.axis").call(viz.bytime.yAxis);
+  svg.select(".x.axis").call(viz.bytime.xAxis);
+
+  // Update list (adjust existing data to correct NEW locations)
+  var player = svg.selectAll(".player")
+    .data(d3.entries(gameData.goals), function(d) { return d.key; });
+  player.select(".line").transition().duration(1000)
+    .attr("d", function(d) { return viz.bytime.line(d.value); });
+  var circles = player.selectAll("circle")
+    .data(function(d) { return d.value; });
+  // Existing data
+  circles.transition().duration(1000)
+      .attr("cx", function(d) { return viz.bytime.x(new Date(d.when)); })
+      .attr("cy", function(d) { return viz.bytime.y(d.num); });
+  // New data
+  circles.enter()
+    .append("circle")
+    .attr("class", "line-point").attr("r", 3.5).attr("cx", 0).attr("cy", viz.bytime.height)
+  .transition().duration(1000)
+    .attr("cx", function(d) { return viz.bytime.x(new Date(d.when)); })
+    .attr("cy", function(d) { return viz.bytime.y(d.num); });
+  // Removed data
+  circles.exit().transition().duration(1000)
+    .attr("cx", 0).attr("cy", viz.bytime.height)
+    .remove();
+  player.select(".nick")
+    .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
+    .transition().duration(1000)
+    .attr("transform", function(d) { 
+      return "translate(" + viz.bytime.x(new Date(d.value.when)) + "," + viz.bytime.y(d.value.num) + ")"; 
+    });
+
+  // Enter list
+  var enter = player.enter()
+    .append("g")
+      .style("stroke", function(d) { return viz.color(d.key); })
+      .attr("class", "player");
+  enter.append("path")
+    .attr("class", "line")
+    .style("stroke", function(d) { return viz.color(d.key); })
+    // TODO: Make this out of the threshold (# L segments == number of goals)
+    .attr("d", "M0," + viz.bytime.height + 
+      "L0," + viz.bytime.height + 
+      "L0," + viz.bytime.height + 
+      "L0," + viz.bytime.height + 
+      "L0," + viz.bytime.height + 
+      "L0," + viz.bytime.height)
+  .transition().duration(1000)
+    .attr("d", function(d) { return viz.bytime.line(d.value); })
+    .style("stroke-width", 1.5);
+  // Line points:
+  enter.selectAll("circle")
+    .data(function(d) { return d.value; }).enter()
+    .append("circle")
+      .attr("class", "line-point")
+      .attr("r", 3.5)
+      .attr("cx", 0).attr("cy", viz.bytime.height)
+    .transition().duration(1000)
+      .attr("cx", function(d) { return viz.bytime.x(new Date(d.when)); })
+      .attr("cy", function(d) { return viz.bytime.y(d.num); });
+  // Nickname text:
+  enter.append("text")
+    .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
+    .style("stroke-width", 0)
+    .style("fill", "none")
+    .attr("dx", 7)
+    .attr("transform", "translate(0," + viz.bytime.height + ")")
+  .transition().duration(1000)
+    .attr("transform", function(d) { 
+      return "translate(" + viz.bytime.x(new Date(d.value.when)) + "," + viz.bytime.y(d.value.num) + ")"; 
+    })
+    .attr("class", "nick")
+    .style("stroke-width", 0)
+    .style("fill", "#444")
+    .text(function(d) { return d.key; })
+
+  // Exit list
+  var exit = player.exit();
+  exit.selectAll("circle")
+    .transition().duration(1000)
+      .attr("cx", 0)
+      .attr("cy", viz.bytime.height)
+    .remove();
+  exit.selectAll(".line")
+    .transition().duration(1000)
+    // TODO: This has to have the correct number of segments! (need a method for this):
+      .attr("d", "M0," + viz.bytime.height + "H0V" + viz.bytime.height)
+    .remove();
+  exit.selectAll(".nick")
+    .transition().duration(1000)
+      .attr("cx", 0).attr("cy", viz.bytime.height)
+    .remove();
+  // At the end of the transition, remove the player layer entirely
+  exit.transition().duration(1000).remove();
+}
+
+
+// TODO: Maybe this should be in a 'homepage.js' file...
 /**
  * Display the pie chart for the most recently played game.
  */
@@ -36,7 +445,6 @@ function initHomePage()
       var lb = $('#leaderboard tbody') ;
       if (!lb) return ;
 
-      console.log(players) ;
       $.each(players,  function(index) {
         var player = players[index] ;
         var rowClass = (player.retired) ? 'disabled' : '' ;
@@ -62,9 +470,6 @@ function initHomePage()
   }) ;
 }
 
-// Global namespace for caching some of the configured d3 settings
-var viz = {};
-
 /**
  * Setup visualization. Using data from the most recent game.
  * TODO: http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js
@@ -75,8 +480,7 @@ function setupVisualization()
   var radius = Math.min(width, height) / 2;
 
   // Define our palette
-  //var color = d3.scale.ordinal().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-  var color = d3.scale.ordinal().range(["#4e9a06", "#057740", "#8ea606", 
+  viz.color = d3.scale.ordinal().range(["#4e9a06", "#057740", "#8ea606", 
     "#84cf3e", "#30a06a", "#c8df43",
     "#295500", "#004222", "#4e5b00"]); 
 
@@ -107,7 +511,7 @@ function setupVisualization()
 
   g.append("path")
       .attr("d", viz.arc)
-      .style("fill", function(d) { return color(d.data.name); })
+      .style("fill", function(d) { return viz.color(d.data.name); })
       // Save the _current start for each arc:
       .each(function(d) { this._current = d; });
 
@@ -169,6 +573,17 @@ function loadGameDay()
 }
 
 /**
+ * Handle window size changes
+ */
+function updateWindow(container)
+{
+  var w = $(container).width();
+  $("svg").attr("width", w);
+  viz.bytime.width = w - viz.bytime.margin.left - viz.bytime.margin.right;
+  // TODO: force D3 to reload/redraw data
+}
+
+/**
  * Get a day as a string.
  */
 function getDateShortDisplay(d)
@@ -199,7 +614,7 @@ function loadWeek()
 }
 
 /**
- * Clone the first value out of this players array.
+ * Helper method: Clone the first value out of this players array.
  */
 function first(game)
 {
@@ -209,9 +624,6 @@ function first(game)
   });
   return ret;
 }
-
-/**
- *
 
 /**
  * Change the pie chart to display the new data as specified by the parameter.

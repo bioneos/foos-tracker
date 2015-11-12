@@ -11,6 +11,12 @@ header #main-title
   padding-top: 65px;
 }
 
+/* Alwaus hide modal messages initially */
+.ui.modal
+{
+  display: none;
+}
+
 /**
  * Home page related
  **/

@@ -1,0 +1,28 @@
+#history-graph
+{
+  svg
+  {
+    font-size: 10px;
+    margin: 0 auto;
+
+    .axis path,
+    .axis line
+    {
+      fill: none;
+      stroke: #444;
+      shape-rendering: crispEdges;
+    }
+
+    .line
+    {
+      fill: none;
+      stroke-width: 1.5px;
+    }
+
+    .line-point
+    {
+      fill: #fff;
+      stroke-width: 1.5px;
+    }
+  }
+}
