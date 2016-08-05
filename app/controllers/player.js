@@ -78,6 +78,9 @@ router.get('/leaderboard', function(req, res, next) {
         'wins' : 0,
         'losses' : 0,
         'embs' : 0,
+        'gameDayWins' : 0,
+        'gameDayLosses' : 0,
+        'gameDayEmbs' : 0,
         'goals' : 0
       } ;
       leaderboard[player.id] = playerObj;
@@ -100,7 +103,49 @@ router.get('/leaderboard', function(req, res, next) {
         });
       });
 
-      res.json(leaderboard);
+      // Find the game day embarrassments and count them as losses as well.
+      db.sequelize.query("SELECT DISTINCT PlayerId, count(distinct strftime('%Y%m%d', createdAt)) as count from GamePlayers where not exists (select * from Goals where GamePlayers.PlayerId = Goals.PlayerId AND strftime('%Y%m%d', GamePlayers.createdAt) = strftime('%Y%m%d', Goals.createdAt)) group by playerId;", { type: db.sequelize.QueryTypes.SELECT})
+        .then(function(gamedayEmbs) {
+          gamedayEmbs.forEach(function(playerGDE) {
+            leaderboard[playerGDE.PlayerId].gameDayEmbs = playerGDE.count;
+            leaderboard[playerGDE.PlayerId].gameDayLosses = playerGDE.count;
+          });
+
+          // Find gameday wins by whoever has the most points on any given day.
+          db.sequelize.query("select PlayerId, strftime('%Y%m%d', createdAt) as date, count(strftime('%Y%m%d', createdAt)) as count from Goals group by strftime('%Y%m%d', createdAt), playerId order by strftime('%Y%m%d', createdAt) ASC, count(strftime('%Y%m%d', createdAt)) DESC;", { type: db.sequelize.QueryTypes.SELECT})
+            .then(function(rows) {
+              // Initialze our variables.
+              var date, highCount;
+              var winnerIdArr = [];
+
+              rows.forEach(function(row) {
+                if (date === row.date)
+                {
+                  if (row.count === highCount)
+                  {
+                    // Push the id onto the winner Id Array as a winner
+                    winnerIdArr.push(row.PlayerId);
+                  }
+                  else
+                    leaderboard[row.PlayerId].gameDayLosses++;
+                }
+                else
+                {
+                  // Iterate through the array and then clear it out for the next date.
+                  // after adding the correct values to wins and losses for each player.
+                  winnerIdArr.forEach(function(winnerId) {
+                    leaderboard[winnerId].gameDayWins += 1/winnerIdArr.length;
+                    leaderboard[winnerId].gameDayLosses += (winnerIdArr.length-1)/winnerIdArr.length;
+                  });
+                  date = row.date;
+                  highCount = row.count;
+                  winnerIdArr = [];
+                  winnerIdArr.push(row.PlayerId);
+                }
+              });
+              res.json(leaderboard);
+            });
+        });
     });
   });
 });
