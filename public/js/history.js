@@ -385,7 +385,7 @@ function loadGameGoalsByTime(gameData)
     .attr("class", "nick")
     .style("stroke-width", 0)
     .style("fill", "#444")
-    .text(function(d) { return d.key; })
+    .text(function(d) { return d.key; });
 
   // Exit list
   var exit = player.exit();
@@ -471,14 +471,15 @@ function initHomePage()
 
         // Make a new row for this player
         var name = '<td><h4 class="ui header"><div class="content">' + player.name + '<div class="sub header">' + player.nick + '</div></div></h4></td>' ;
-        var gf = '<td>' + player.goals + '</td>' ;
-        var record = '<td class="game record">' + player.wins + '/' + player.losses + ' (' + player.embs + ')</td>' ;
-        var gdRecord = '<td class="gd record hidden">' + Math.round(player.gameDayWins*100)/100 + '/' + Math.round(player.gameDayLosses*100)/100 + '(' + player.gameDayEmbs + ')</td>';
+        var gf = '<td class="game">' + player.goals + '</td>' ;
+        var record = '<td class="game record">' + player.wins + '-' + player.losses + ' (' + player.embs + ')</td>' ;
+        var gdRecord = '<td class="gd record hidden">' + player.gameDayWins + '-' + player.gameDayLosses + '-' + player.gameDayTiesRec.length + '(' + player.gameDayEmbs + ')</td>';
         var wins = '<td class="game record-fw">' + player.wins + '</td>' ;
         var losses = '<td class="game record-fw">' + player.losses + '</td>' ;
         var embs = '<td class="game record-fw">' + player.embs + '</td>' ;
-        var gdWins = '<td class="gd record-fw hidden">' + Math.round(player.gameDayWins * 100)/100 + '</td>';
-        var gdLosses = '<td class="gd record-fw hidden">' + Math.round(player.gameDayLosses * 100)/100 + '</td>';
+        var gdWins = '<td class="gd record-fw hidden">' + player.gameDayWins + '</td>';
+        var gdLosses = '<td class="gd record-fw hidden">' + player.gameDayLosses + '</td>';
+        var gdTies = '<td class="gd record-fw hidden">' + player.gameDayTiesRec.length + '</td>';
         var gdEmbs = '<td class="gd record-fw hidden">' + player.gameDayEmbs + '</td>';
         var winpStr = '<td class="game">-</td>';
         if ((player.wins + player.losses) !== 0)
@@ -491,12 +492,19 @@ function initHomePage()
         var gdWinpStr = '<td class="gd hidden">-</td>';
         if ((player.gameDayWins + player.gameDayLosses) !== 0)
         {
-          var gdwinp = (player.gameDayWins / (player.gameDayWins + player.gameDayLosses));
+          var playerWins = player.gameDayWins;
+          var playerLosses = player.gameDayLosses;
+          player.gameDayTiesRec.forEach(function(tieCount) {
+            playerWins += 1/tieCount;
+            playerLosses += (tieCount-1)/tieCount;
+          });
+
+          var gdwinp = (playerWins / (playerWins + playerLosses));
           gdwinp = Math.floor(gdwinp * 10000) / 100;
           gdWinpStr = '<td class="gd hidden">' + gdwinp + '%</td>';
         }
 
-        lb.append('<tr class="' + rowClass + '">' + name + gf + record + wins + losses + embs + winpStr + gdRecord + gdWins + gdLosses + gdEmbs + gdWinpStr + '</tr>') ;
+        lb.append('<tr class="' + rowClass + '">' + name + gf + record + wins + losses + embs + winpStr + gdRecord + gdWins + gdLosses + gdTies + gdEmbs + gdWinpStr + '</tr>') ;
       }) ;
     }
   }) ;
