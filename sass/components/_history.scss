@@ -1,9 +1,11 @@
-#history-graph
+#foos-graph
 {
   svg
   {
     font-size: 10px;
     margin: 0 auto;
+    height: 600px;
+    width: 100%;
 
     .axis path,
     .axis line

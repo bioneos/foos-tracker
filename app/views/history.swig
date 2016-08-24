@@ -1,16 +1,53 @@
 {% extends 'layout.swig' %}
 
 {% block content %}
-<h1>Game Play History</h1>
-<div class="history container">
-  <div class="controls">
-    <h4>Goals over time (Single Game):</h4>
-    <select id="game-goals-by-time" class="ui dropdown">
-      <option value="0">Select a game...</option>
-    </select>
-  </div>
-  <div id="history-graph"></div>
+<div class="ui tiny seven item stackable menu" id="graph-type">
+  <a class="item" id="graph-g">Goals</a>
+  <a class="item" id="graph-got">Goals over Time</a>
+  <a class="item" id="graph-wot">Wins over Time</a>
+  <a class="item" id="graph-eot">Embs over Time</a>
+  <a class="item" id="graph-gl">Game Length</a>
+  <a class="item" id="graph-wogl">Wins over GL</a>
+  <a class="item" id="graph-eogl">Embs over GL</a>
 </div>
+<div class="ui top attached center aligned segment">
+  <button id="foos-graph-options" class="ui disabled button" data-position="bottom center">
+    Select Graph Type
+  </button>
+  <div class="ui fluid popup">
+    <div id="game-id-selection" class="ui basic center aligned segment">
+      <h4 class="ui header">Single Game</h4>
+      <div class="ui selection dropdown">
+        <input type="hidden" id="game-id-input">
+        <i class="dropdown icon"></i>
+        <div class="default text">Please select a Game...</div>
+        <div class="menu">
+          <div class="item"data-value="1">Game 1</div>
+        </div>
+      </div>
+    </div>
+    <div id="date-range-selection" class="ui basic center aligned segment">
+      <h4 class="ui header">Date range</h4>
+      <div class="ui input">
+        <input type="textfield" id="date-range-input-start" placeholder="mm/dd/yyyy">
+      </div>
+      to 
+      <div class="ui input">
+        <input type="textfield" id="date-range-input-end" placeholder="mm/dd/yyyy">
+      </div>
+      <div class="ui basic segment">
+        <button class="ui button">Update Graph</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="ui bottom attached segment">
+  <div id="foos-graph">
+    <svg><text id="graph-placeholder" x="50%" y="200" style="text-anchor: middle; font-size: 3em;">Select Graph Type</text></svg>
+  </div>
+</div>
+
+<!-- Not needed? -->
 <div class="ui basic modal">
   <i class="close icon"></i>
   <div class="header">
@@ -35,13 +72,13 @@
 {% endblock %}
 
 {% block scripts %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.1/d3.js"></script>
   <script src="/js/main.js"></script>
-  <script src="/js/history.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+  <script src="/js/graphs/g.js"></script>
+  <script src="/js/graph.js"></script>
   <script>
     $(document).on('ready', function() { 
       $('.ui.model').modal();
-      initHistoryPage(); 
     });
   </script>
 {% endblock %}

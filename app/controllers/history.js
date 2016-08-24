@@ -29,6 +29,7 @@ router.get('/game/:id/', function(req, res, next) {
     // Error handling
     if (!game) 
     {
+      res.statusCode = 404;
       res.json({'error' : 'No game exists with that id'});
       return;
     }
