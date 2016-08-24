@@ -40,10 +40,12 @@
     "accordion",
     "checkbox",
     "dropdown",
+    "dimmer",
     "modal",
     "transition",
     "api",
     "form",
+    "popup",
     "state"
   ],
   "version": "2.2.2"
