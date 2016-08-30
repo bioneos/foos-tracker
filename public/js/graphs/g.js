@@ -134,8 +134,6 @@ function GoalsGraph(config)
       xMax = d3.max([xMax, playerMax]);
     });
     xScale.domain([new Date(gameData.when).getTime(), xMax.getTime()]);
-    // TODO: Determine how to keep existing mappings 
-    FoosTracker.palette.domain(d3.keys(gameData.goals));
 
     // Refresh axes
     svg.select(".y.axis").call(yAxis);
@@ -146,9 +144,7 @@ function GoalsGraph(config)
     //
     // Associate data with all the "player" layers
     var player = svg.selectAll(".player")
-      .data(d3.entries(gameData.goals), function(d) { return d.key; })
-        .style("stroke", function(d) { return FoosTracker.palette(d.key); })
-        .style("fill", function(d) { return FoosTracker.palette(d.key); });
+      .data(d3.entries(gameData.goals), function(d) { return d.key; });
 
     //
     // Update list
@@ -156,7 +152,6 @@ function GoalsGraph(config)
     //   our new data to this visualization
     player.select(".line")
       .transition().duration(1000)
-      .style("stroke", function(d) { return FoosTracker.palette(d.key); })
       .attr("d", function(d) { 
         //console.log("OLD Data: ", d3.select(this).attr("d"));
         //console.log("NEW: ", line(d.value)); 
