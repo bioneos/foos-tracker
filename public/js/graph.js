@@ -38,8 +38,12 @@ $(document).on('ready', function(ev) {
     $(event.target).addClass('active');
 
     // Transition the graphs (in / out)
-    $('#graph-placeholder').remove();
-    FoosTracker.graph.transitionOut(newGraph);
+    $('#graph-placeholder').remove();  // TEMP
+    FoosTracker.graph.transitionOut(function() {
+      FoosTracker.graph = newGraph;
+      //FoosTracker.graph.transitionIn(Math.floor((Math.random() * 10) + 10));  // TEMP
+      FoosTracker.graph.transitionIn();
+    });
 
     // Adjust the game options button
     $('#foos-graph-options').text('Graph Options').removeClass('disabled');

@@ -2,30 +2,27 @@ function GoalsGraph(config)
 {
   // Private variables
   var margin = { top: 20, right: 50, bottom: 20, left: 50 };
-  // TEMP / TODO Can we encapsulate this? Or maybe just calculate off of a known
   var canvasHeight = config.height - margin.top - margin.bottom; 
   var width = config.width - margin.left - margin.right;
-  
-  // Private variable to record currently displayed data (for updateWidth())
+  // Track the currently displayed data (for updateWidth() calls)
   var current = 0; 
 
-  // Our graph type identifier (read only)
-  this.type = function() { return 'G'; };
-  // Other public variables TODO might try to make these private)
+  // D3 related objects for Axes
   var xScale = d3.scaleTime().domain([new Date(), new Date()]).range([0, width]);
-  var yScale = d3.scaleLinear().domain([0, 10]).range([canvasHeight, 0]);
+  var yScale = d3.scaleLinear().domain([0, 5]).range([canvasHeight, 0]);
   var xAxis = d3.axisBottom(xScale)
     .tickFormat(d3.timeFormat("%_I:%M%p"));
   var yAxis = d3.axisLeft(yScale).ticks(6)
     .tickFormat(d3.format("d"));
-
-  // Graph render function (step-after line)
+  // D3 Graph render function (step-after line)
   var line = d3.line().curve(d3.curveStepAfter)
     .x(function(d) { return xScale(new Date(d.when).getTime()) })
     .y(function(d) { return yScale(d.num) });
 
-
   // Public methods:
+  // Our graph type identifier (read only)
+  this.type = function() { return 'G'; };
+
   /**
    * Update the width of this graph (window resize events, for example).
    * Pass the value of the container for the graph, and the canvas size
@@ -60,10 +57,8 @@ function GoalsGraph(config)
    * Define the way this graph transitions into view.
    */
   this.transitionIn = function(data) {
-    console.log('Will transition into view'); 
     // TODO - maybe grow the axis from the bottom left
-
-    // Remove old canvas (If any)
+    // Remove old canvas (If any)  TODO: maybe unnecessary?
     d3.select('#foos-graph svg g.canvas').remove();
     // Add our canvas
     var canvas = d3.select('#foos-graph svg').append('g')
@@ -89,7 +84,6 @@ function GoalsGraph(config)
    * a GameID for this graph type).
    */
   this.transition = function(gameId) {
-    console.log('Will transition to new GameID: ', gameId);
     if (!gameId || gameId < 0) return updateData({});
 
     $.ajax('/history/game/' + gameId, {
@@ -108,18 +102,10 @@ function GoalsGraph(config)
   };
 
   /**
-   * Define the way this graph transitions out of view, then assign the
-   * global to our new FoosGraph, and call its transitionIn method.
+   * Define the way this graph transitions out of view, then perform the allback
    */
-  this.transitionOut = function(newGraph) {
-    console.log('Will transition out of view'); // TODO
-    updateData({});
-    FoosTracker.graph = newGraph;
-    // TEMP:
-    if (!window.bioneos)
-      FoosTracker.graph.transitionIn(Math.floor((Math.random() * 10) + 10));
-    window.bioneos = 1;
-    // end TEMP
+  this.transitionOut = function(callback) {
+    updateData({}, callback);
   };
 
 
@@ -128,9 +114,13 @@ function GoalsGraph(config)
    * Private helper for updating the underlying data and D3 objects
    * @param data
    *   The new GameDay data, or {}.
+   * @param callback
+   *   Function to call upon completed transitioning out. Optional.
    */
-  function updateData(gameData)
+  function updateData(gameData, callback)
   {
+    // Function constant
+    const TRANSITION_DURATION = 1000;
     // First create a game skeleton, if passed an empty object.
     if (!gameData.when)
     {
@@ -146,6 +136,7 @@ function GoalsGraph(config)
     var svg = d3.select('#foos-graph svg .canvas');
 
     // Adjust our scales
+    console.log(gameData.threshold);
     yScale.domain([0, gameData.threshold]);
     xMax = new Date(gameData.when);
     d3.map(gameData.goals).each(function(goals, nick) {
@@ -170,7 +161,7 @@ function GoalsGraph(config)
     //   This is any Player layer that already existed before we applied
     //   our new data to this visualization
     player.select(".line")
-      .transition().duration(1000)
+      .transition().duration(TRANSITION_DURATION)
       .attr("d", function(d) { 
         //console.log("OLD Data: ", d3.select(this).attr("d"));
         //console.log("NEW: ", line(d.value)); 
@@ -182,7 +173,7 @@ function GoalsGraph(config)
     //
     // Updated Player layer: Circles updated
     updatedCircles
-      .transition().duration(1000)
+      .transition().duration(TRANSITION_DURATION)
         .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
         .attr("cy", function(d) { return yScale(d.num); });
     // Updated Player layer: Circles entered
@@ -191,17 +182,17 @@ function GoalsGraph(config)
         .attr("class", "line-point")
         .attr("r", 3.5)
         .attr("cx", 0).attr("cy", canvasHeight)
-      .transition().duration(1000)
+      .transition().duration(TRANSITION_DURATION)
         .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
         .attr("cy", function(d) { return yScale(d.num); });
     // Updated Player layer: Circles exited
     updatedCircles.exit()
-      .transition().duration(1000)
+      .transition().duration(TRANSITION_DURATION)
         .attr('cx', 0).attr('cy', canvasHeight)
         .remove();
     player.select(".nick")
       .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
-      .transition().duration(1000)
+      .transition().duration(TRANSITION_DURATION)
       .attr("transform", function(d) { 
         return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.num) + ")"; 
       });
@@ -230,7 +221,7 @@ function GoalsGraph(config)
         "L0," + canvasHeight + 
         "L0," + canvasHeight + 
         "L0," + canvasHeight)
-    .transition().duration(1000)
+    .transition().duration(TRANSITION_DURATION)
       .attr("d", function(d) { return line(d.value); })
       .style("stroke-width", 1.5);
     // Entering Player layer: Circles
@@ -240,7 +231,7 @@ function GoalsGraph(config)
         .attr("class", "line-point")
         .attr("r", 3.5)
         .attr("cx", 0).attr("cy", canvasHeight)
-      .transition().duration(1000)
+      .transition().duration(TRANSITION_DURATION)
         .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
         .attr("cy", function(d) { return yScale(d.num); });
     // Entering Player layer: Nickname text
@@ -250,7 +241,7 @@ function GoalsGraph(config)
       .style("fill", "none")
       .attr("dx", 7)
       .attr("transform", "translate(0," + canvasHeight + ")")
-    .transition().duration(1000)
+    .transition().duration(TRANSITION_DURATION)
       .attr("transform", function(d) { 
         return "translate(" + xScale(new Date(d.value.when).getTime()) + "," + yScale(d.value.num) + ")"; 
       })
@@ -266,14 +257,14 @@ function GoalsGraph(config)
     var exit = player.exit();
     // Exiting Player layer: Circles
     exit.selectAll("circle")
-      .transition().duration(1000)
+      .transition().duration(TRANSITION_DURATION)
         .attr("r", 0)
         .attr("cx", 0)
         .attr("cy", canvasHeight)
       .remove();
     // Exiting Player layer: Line
     exit.selectAll(".line")
-      .transition().duration(1000)
+      .transition().duration(TRANSITION_DURATION)
       // TODO: This has to have the correct number of segments! (need a method for this):
         .attr("d", function(d) { 
           //console.log("Exit data: ", d);
@@ -286,38 +277,30 @@ function GoalsGraph(config)
       .remove();
     // Exiting Player layer: Nickname text
     exit.selectAll(".nick")
-      .transition().duration(1000)
-        .on('interrupt end', function() { console.log('nick exitlist transition ended'); })
-        //.attr("cx", 0).attr("cy", canvasHeight)
+      .transition().duration(TRANSITION_DURATION)
         .attr("transform", "translate(0, " + canvasHeight + ")")
       .remove();
     // At the end of the transition, remove the player layer entirely
-    exit.transition().duration(1000).remove();
+    exit.transition().duration(TRANSITION_DURATION).remove();
 
 
-    // 
-    // Now apply data to circles separately
     //
-    /*var circles = player.selectAll("circle")
-      .data(function(d) { return d.value; });
-    // Existing data
-    circles.transition().duration(1000)
-      .on('end', function() { console.log('circles updatelist transition ended'); })
-      .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
-      .attr("cy", function(d) { return yScale(d.num); });
-    // New data
-    circles.enter()
-      .append("circle")
-      .attr("class", "line-point").attr("r", 3.5).attr("cx", 0).attr("cy", canvasHeight)
-    .transition().duration(1000)
-      .on('end', function() { console.log('circles editlist transition ended'); })
-      .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
-      .attr("cy", function(d) { return yScale(d.num); });
-    // Removed data
-    circles.exit().transition().duration(1000)
-      //.each('interrupt end', function() { console.log('transition ended'); })
-      .on('end', function() { console.log('circles exitlist transition ended'); })
-      .attr("cx", 0).attr("cy", canvasHeight)
-      .remove();*/
+    // Now handle our transition completion callback
+    // NOTE: Because of the many queued, simultaneous transitions, I have
+    // implemented what feels like a hacky solution to this problem. Rather
+    // than count the number of nodes in my selection and handle the 'end'
+    // event for each, only calling the callback at the end 
+    //   (as suggested by Mike Bostock here:)
+    //   https://groups.google.com/forum/#!msg/d3-js/WC_7Xi6VV50/j1HK0vIWI-EJ
+    // Instead, I am queuing all of the transitions with the same duration,
+    // and at the end, creating a single transition of the SVG with the same
+    // duration, The assumption is, this transition is queued last and always
+    // performed on a single node. Therefore, it can safely call my callback...
+    if (callback)
+    {
+      // TODO: We probably want to review this for better solutions in the future
+      d3.select('svg').transition().duration(TRANSITION_DURATION)
+        .on('interrupt end', function() { callback(); });
+    }
   }
 }
