@@ -6,7 +6,7 @@ function GoalsGraph(config)
   var canvasHeight = config.height - margin.top - margin.bottom; 
   var width = config.width - margin.left - margin.right;
   
-  // GameId (starts with no game selected)
+  // Private variable to record currently displayed data (for updateWidth())
   var current = 0; 
 
   // Our graph type identifier (read only)
@@ -34,10 +34,26 @@ function GoalsGraph(config)
   this.updateWidth = function(newWidth) {
     width = newWidth - margin.left - margin.right;
     xScale.range([0, width]);
-    d3.select('g.x.axis').call(xAxis);
+    d3.select('svg g.x.axis').call(xAxis);
 
-    // Update data to correct position without any transitions
-    // TODO
+    // Update data to correct position (Instantaneous)
+    var player = d3.select('svg').selectAll('.player')
+      .data(d3.entries(current.goals), function(d) { return d.key; });
+
+    // Line:
+    player.select('.line')
+      .attr("d", function(d) { return line(d.value); });
+    // Circles:
+    player.selectAll('circle')
+      .data(function(d) { return d.value; })
+        .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
+        .attr("cy", function(d) { return yScale(d.num); });
+    // Nick:
+    player.select(".nick")
+      .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
+      .attr("transform", function(d) { 
+        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.num) + ")"; 
+      });
   };
 
   /**
@@ -122,7 +138,10 @@ function GoalsGraph(config)
       gameData.threshold = 5;
       gameData.goals = {};
     }
-    
+   
+    // Save our current data
+    current = gameData;
+
     // Obtain our canvas
     var svg = d3.select('#foos-graph svg .canvas');
 
