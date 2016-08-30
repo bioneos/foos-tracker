@@ -1,10 +1,10 @@
-function GoalsGraph()
+function GoalsGraph(config)
 {
   // Private variables
   var margin = { top: 20, right: 50, bottom: 20, left: 50 };
   // TEMP / TODO Can we encapsulate this? Or maybe just calculate off of a known
-  var canvasHeight = 600 - margin.top - margin.bottom; 
-  var width = $('#foos-graph').width() - margin.left - margin.right;
+  var canvasHeight = config.height - margin.top - margin.bottom; 
+  var width = config.width - margin.left - margin.right;
   
   // GameId (starts with no game selected)
   var current = 0; 
@@ -33,8 +33,11 @@ function GoalsGraph()
    */
   this.updateWidth = function(newWidth) {
     width = newWidth - margin.left - margin.right;
-    self.xScale.range([0, width]);
-    d3.select('g.x.axis').call(self.xAxis);
+    xScale.range([0, width]);
+    d3.select('g.x.axis').call(xAxis);
+
+    // Update data to correct position without any transitions
+    // TODO
   };
 
   /**
@@ -96,7 +99,11 @@ function GoalsGraph()
     console.log('Will transition out of view'); // TODO
     updateData({});
     FoosTracker.graph = newGraph;
-    FoosTracker.graph.transitionIn(10);
+    // TEMP:
+    if (!window.bioneos)
+      FoosTracker.graph.transitionIn(Math.floor((Math.random() * 10) + 10));
+    window.bioneos = 1;
+    // end TEMP
   };
 
 
@@ -127,6 +134,7 @@ function GoalsGraph()
       xMax = d3.max([xMax, playerMax]);
     });
     xScale.domain([new Date(gameData.when).getTime(), xMax.getTime()]);
+    // TODO: Determine how to keep existing mappings 
     FoosTracker.palette.domain(d3.keys(gameData.goals));
 
     // Refresh axes
@@ -136,14 +144,47 @@ function GoalsGraph()
     //
     // Data update with transitions
     //
-    // Update list (adjust existing data to correct NEW locations)
+    // Associate data with all the "player" layers
     var player = svg.selectAll(".player")
-      .data(d3.entries(gameData.goals), function(d) { return d.key; });
-    player.select(".line").transition().duration(1000)
+      .data(d3.entries(gameData.goals), function(d) { return d.key; })
+        .style("stroke", function(d) { return FoosTracker.palette(d.key); })
+        .style("fill", function(d) { return FoosTracker.palette(d.key); });
+
+    //
+    // Update list
+    //   This is any Player layer that already existed before we applied
+    //   our new data to this visualization
+    player.select(".line")
+      .transition().duration(1000)
+      .style("stroke", function(d) { return FoosTracker.palette(d.key); })
       .attr("d", function(d) { 
-        console.log("OLD Data: ", d3.select(this).attr("d"));
-        console.log("NEW: ", line(d.value)); 
+        //console.log("OLD Data: ", d3.select(this).attr("d"));
+        //console.log("NEW: ", line(d.value)); 
         return line(d.value); });
+    var updatedCircles = player.selectAll('circle')
+      .data(function(d) { return d.value; });
+    // For existing Players, we need to process Update / Enter / Exit 
+    // lists for each circle as well.
+    //
+    // Updated Player layer: Circles updated
+    updatedCircles
+      .transition().duration(1000)
+        .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
+        .attr("cy", function(d) { return yScale(d.num); });
+    // Updated Player layer: Circles entered
+    updatedCircles.enter()
+      .append("circle")
+        .attr("class", "line-point")
+        .attr("r", 3.5)
+        .attr("cx", 0).attr("cy", canvasHeight)
+      .transition().duration(1000)
+        .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
+        .attr("cy", function(d) { return yScale(d.num); });
+    // Updated Player layer: Circles exited
+    updatedCircles.exit()
+      .transition().duration(1000)
+        .attr('cx', 0).attr('cy', canvasHeight)
+        .remove();
     player.select(".nick")
       .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
       .transition().duration(1000)
@@ -151,11 +192,15 @@ function GoalsGraph()
         return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.num) + ")"; 
       });
 
+    //
     // Enter list
+    //   This is any new player that didn't appear in previously applied data.
     var enter = player.enter()
       .append("g")
         .style("stroke", function(d) { return FoosTracker.palette(d.key); })
+        .style("fill", function(d) { return FoosTracker.palette(d.key); })
         .attr("class", "player");
+    // Entering Player layer: Line
     enter.append("path")
       .attr("class", "line")
       .style("stroke", function(d) { return FoosTracker.palette(d.key); })
@@ -172,9 +217,9 @@ function GoalsGraph()
         "L0," + canvasHeight + 
         "L0," + canvasHeight)
     .transition().duration(1000)
-      .attr("d", function(d) { console.log('data', d.value, line(d.value)); return line(d.value); })
+      .attr("d", function(d) { return line(d.value); })
       .style("stroke-width", 1.5);
-    // Line points:
+    // Entering Player layer: Circles
     enter.selectAll("circle")
       .data(function(d) { return d.value; }).enter()
       .append("circle")
@@ -184,7 +229,7 @@ function GoalsGraph()
       .transition().duration(1000)
         .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
         .attr("cy", function(d) { return yScale(d.num); });
-    // Nickname text:
+    // Entering Player layer: Nickname text
     enter.append("text")
       .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
       .style("stroke-width", 0)
@@ -200,13 +245,19 @@ function GoalsGraph()
       .style("fill", "#444")
       .text(function(d) { return d.key; })
 
+    //
     // Exit list
+    //   This is any player that previously exited, but didn't appear in the
+    //   currently applied dataset.
     var exit = player.exit();
+    // Exiting Player layer: Circles
     exit.selectAll("circle")
       .transition().duration(1000)
+        .attr("r", 0)
         .attr("cx", 0)
         .attr("cy", canvasHeight)
       .remove();
+    // Exiting Player layer: Line
     exit.selectAll(".line")
       .transition().duration(1000)
       // TODO: This has to have the correct number of segments! (need a method for this):
@@ -219,9 +270,12 @@ function GoalsGraph()
           return line;
         })
       .remove();
+    // Exiting Player layer: Nickname text
     exit.selectAll(".nick")
       .transition().duration(1000)
-        .attr("cx", 0).attr("cy", canvasHeight)
+        .on('interrupt end', function() { console.log('nick exitlist transition ended'); })
+        //.attr("cx", 0).attr("cy", canvasHeight)
+        .attr("transform", "translate(0, " + canvasHeight + ")")
       .remove();
     // At the end of the transition, remove the player layer entirely
     exit.transition().duration(1000).remove();
@@ -230,24 +284,26 @@ function GoalsGraph()
     // 
     // Now apply data to circles separately
     //
-    var circles = player.selectAll("circle")
+    /*var circles = player.selectAll("circle")
       .data(function(d) { return d.value; });
     // Existing data
     circles.transition().duration(1000)
-        .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
-        .attr("cy", function(d) { return yScale(d.num); });
+      .on('end', function() { console.log('circles updatelist transition ended'); })
+      .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
+      .attr("cy", function(d) { return yScale(d.num); });
     // New data
     circles.enter()
       .append("circle")
       .attr("class", "line-point").attr("r", 3.5).attr("cx", 0).attr("cy", canvasHeight)
     .transition().duration(1000)
+      .on('end', function() { console.log('circles editlist transition ended'); })
       .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
       .attr("cy", function(d) { return yScale(d.num); });
     // Removed data
     circles.exit().transition().duration(1000)
       //.each('interrupt end', function() { console.log('transition ended'); })
-      .on('interrupt end', function() { console.log('transition ended'); })
+      .on('end', function() { console.log('circles exitlist transition ended'); })
       .attr("cx", 0).attr("cy", canvasHeight)
-      .remove();
+      .remove();*/
   }
 }

@@ -7,8 +7,8 @@ var FoosTracker = FoosTracker || {};
 $(document).on('ready', function(ev) {
 
   // Common graph setup:
-  FoosTracker.graph = new GoalsGraph();
-  // Zach says we need to change this for the color blind...
+  FoosTracker.graph = new GoalsGraph({height: 500, width: $('#foos-graph').width()});
+  // @zachsanderson says we need to change this for the color blind...
   FoosTracker.palette = d3.scaleOrdinal().range(["#4e9a06", "#057740", "#8ea606", 
     "#84cf3e", "#30a06a", "#c8df43", "#295500", "#004222", "#4e5b00"]);
 
@@ -26,9 +26,10 @@ $(document).on('ready', function(ev) {
     var newType = $(event.target).attr('id');
     var newGraph = {};
     if (newType == 'graph-g')
-      newGraph = new GoalsGraph();
+      newGraph = new GoalsGraph({height: 500, width: $('#foos-graph').width()});
     else if (newType == 'graph-got')
-      newGraph = new GoalsGraph(); // TEMP: newGraph = new GoalsOverTimeGraph();
+      newGraph = new GoalsGraph({height: 500, width: $('#foos-graph').width()});
+      // TEMP: newGraph = new GoalsOverTimeGraph();
     else
       return console.log('Error! Couldn\'t find a graph type for "' + newType + '"...');
 
