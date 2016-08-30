@@ -4,7 +4,7 @@
   {
     font-size: 10px;
     margin: 0 auto;
-    height: 600px;
+    height: 500px;
     width: 100%;
 
     .axis path,
@@ -23,8 +23,7 @@
 
     .line-point
     {
-      fill: #fff;
-      stroke-width: 1.5px;
+      stroke-width: 2.5px;
     }
   }
 }
