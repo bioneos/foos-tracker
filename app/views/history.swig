@@ -43,7 +43,7 @@
 </div>
 <div class="ui bottom attached segment">
   <div id="foos-graph">
-    <svg><text id="graph-placeholder" x="50%" y="200" style="text-anchor: middle; font-size: 3em;">Select Graph Type</text></svg>
+    <svg></svg>
   </div>
 </div>
 
@@ -74,6 +74,7 @@
 {% block scripts %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.1/d3.js"></script>
   <script src="/js/main.js"></script>
+  <script src="/js/graphs/foos.js"></script>
   <script src="/js/graphs/g.js"></script>
   <script src="/js/graph.js"></script>
   <script>

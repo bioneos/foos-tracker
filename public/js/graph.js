@@ -7,7 +7,8 @@ var FoosTracker = FoosTracker || {};
 $(document).on('ready', function(ev) {
 
   // Common graph setup:
-  FoosTracker.graph = new GoalsGraph({height: 500, width: $('#foos-graph').width()});
+  FoosTracker.graph = new FoosGraph();
+  FoosTracker.graph.transitionIn();
   // @zachsanderson says we need to change this for the color blind...
   FoosTracker.palette = d3.scaleOrdinal().range(["#4e9a06", "#057740", "#8ea606", 
     "#84cf3e", "#30a06a", "#c8df43", "#295500", "#004222", "#4e5b00"]);
@@ -20,7 +21,7 @@ $(document).on('ready', function(ev) {
   // Initialize the popup window
   $('#foos-graph-options').popup({ 'on': 'click' });
 
-  // Handle Graph Type selections
+  // Handle Graph Type selections Clicks
   $('#graph-type .item').on('click', function(ev) {
     // Determine the new graph type
     var newType = $(event.target).attr('id');
@@ -38,7 +39,6 @@ $(document).on('ready', function(ev) {
     $(event.target).addClass('active');
 
     // Transition the graphs (in / out)
-    $('#graph-placeholder').remove();  // TEMP
     FoosTracker.graph.transitionOut(function() {
       FoosTracker.graph = newGraph;
       //FoosTracker.graph.transitionIn(Math.floor((Math.random() * 10) + 10));  // TEMP

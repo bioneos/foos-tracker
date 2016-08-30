@@ -136,7 +136,6 @@ function GoalsGraph(config)
     var svg = d3.select('#foos-graph svg .canvas');
 
     // Adjust our scales
-    console.log(gameData.threshold);
     yScale.domain([0, gameData.threshold]);
     xMax = new Date(gameData.when);
     d3.map(gameData.goals).each(function(goals, nick) {
