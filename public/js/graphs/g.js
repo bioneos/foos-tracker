@@ -1,19 +1,26 @@
 function GoalsGraph(config)
 {
   // Private variables
-  var margin = { top: 20, right: 50, bottom: 20, left: 50 };
+  var margin = { top: 10, right: 35, bottom: 20, left: 15 };
   var canvasHeight = config.height - margin.top - margin.bottom; 
   var width = config.width - margin.left - margin.right;
   // Track the currently displayed data (for updateWidth() calls)
   var current = 0; 
 
   // D3 related objects for Axes
-  var xScale = d3.scaleTime().domain([new Date(), new Date()]).range([0, width]);
+  var xScale = d3.scaleLinear([0, 60 * 1000]).range([0, width]);
   var yScale = d3.scaleLinear().domain([0, 5]).range([canvasHeight, 0]);
-  var xAxis = d3.axisBottom(xScale)
-    .tickFormat(d3.timeFormat("%_I:%M%p"));
-  var yAxis = d3.axisLeft(yScale).ticks(6)
-    .tickFormat(d3.format("d"));
+  var xAxis = d3.axisBottom(xScale).tickFormat(function(d) {
+    var s = Math.floor((d - xScale.domain()[0]) / 1000);
+
+    var hr = Math.floor(s / 3600);
+    var min = Math.floor((s - (hr * 3600)) / 60);
+    var sec = Math.floor(s % 60);
+    return (hr > 0) ? hr + 'hr' : min + ':' + ((sec < 10) ? '0' + sec : sec); 
+  });
+  //d3.timeSecond.every(30));
+//    .tickFormat(d3.timeFormat("%_I:%M%p"));
+  var yAxis = d3.axisLeft(yScale).ticks(6, "d");
   // D3 Graph render function (step-after line)
   var line = d3.line().curve(d3.curveStepAfter)
     .x(function(d) { return xScale(new Date(d.when).getTime()) })
