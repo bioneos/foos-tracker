@@ -29,7 +29,7 @@ $(document).on('ready', function(ev) {
     if (newType == 'graph-g')
       newGraph = new GoalsGraph({height: 500, width: $('#foos-graph').width()});
     else if (newType == 'graph-got')
-      newGraph = new GoalsGraph({height: 500, width: $('#foos-graph').width()});
+      newGraph = new GoalsOverTimeGraph({height: 500, width: $('#foos-graph').width()});
       // TEMP: newGraph = new GoalsOverTimeGraph();
     else
       return console.log('Error! Couldn\'t find a graph type for "' + newType + '"...');

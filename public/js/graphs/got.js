@@ -1,32 +1,26 @@
-function GoalsGraph(config)
+function GoalsOverTimeGraph(config)
 {
   // Private variables
-  var margin = { top: 10, right: 35, bottom: 20, left: 15 };
+  var margin = { top: 10, right: 35, bottom: 20, left: 35 };
   var canvasHeight = config.height - margin.top - margin.bottom; 
   var width = config.width - margin.left - margin.right;
   // Track the currently displayed data (for updateWidth() calls)
   var current = 0; 
 
   // D3 related objects for Axes
-  var xScale = d3.scaleLinear([0, 60 * 1000]).range([0, width]);
-  var yScale = d3.scaleLinear().domain([0, 5]).range([canvasHeight, 0]);
-  var xAxis = d3.axisBottom(xScale).tickFormat(function(d) {
-    var s = Math.floor((d - xScale.domain()[0]) / 1000);
-
-    var hr = Math.floor(s / 3600);
-    var min = Math.floor((s - (hr * 3600)) / 60);
-    var sec = Math.floor(s % 60);
-    return (hr > 0) ? hr + 'hr' : min + ':' + ((sec < 10) ? '0' + sec : sec); 
-  });
-  var yAxis = d3.axisLeft(yScale).ticks(6, "d");
+  var xScale = d3.scaleTime().domain([new Date(), undefined]).range([0, width]);
+  var yScale = d3.scaleLinear().domain([0, undefined]).range([canvasHeight, 0]);
+  var xAxis = d3.axisBottom(xScale);
+  var yAxis = d3.axisLeft(yScale).tickFormat(d3.format("d"));
   // D3 Graph render function (step-after line)
-  var line = d3.line().curve(d3.curveStepAfter)
-    .x(function(d) { return xScale(new Date(d.when).getTime()) })
-    .y(function(d) { return yScale(d.num) });
+  var line = d3.line().curve(d3.curveLinear)
+  //var line = d3.line().curve(d3.curveMonotoneX)
+    .x(function(d) { return xScale(new Date(d.when)) })
+    .y(function(d) { return yScale(d.goals) });
 
   // Public methods:
   // Our graph type identifier (read only)
-  this.type = function() { return 'G'; };
+  this.type = function() { return 'GoT'; };
 
   /**
    * Update the width of this graph (window resize events, for example).
@@ -39,22 +33,18 @@ function GoalsGraph(config)
     d3.select('svg g.x.axis').call(xAxis);
 
     // Update data to correct position (Instantaneous)
+    var playersData = getPlayersData(current);
     var player = d3.select('svg').selectAll('.player')
-      .data(d3.entries(current.goals), function(d) { return d.key; });
+      .data(playersData.entries(), function(d) { return d.key; });
 
     // Line:
     player.select('.line')
       .attr("d", function(d) { return line(d.value); });
-    // Circles:
-    player.selectAll('circle')
-      .data(function(d) { return d.value; })
-        .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
-        .attr("cy", function(d) { return yScale(d.num); });
     // Nick:
     player.select(".nick")
       .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
       .attr("transform", function(d) { 
-        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.num) + ")"; 
+        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.goals) + ")"; 
       });
   };
 
@@ -79,19 +69,20 @@ function GoalsGraph(config)
       .attr("transform", "translate(0, " + canvasHeight + ")")
       .call(xAxis);
 
-    // If data is supplied, transition in the data now (expecting a game id)
-    if (data) this.transition(data);
+    // By default display this graph of goals for all time
+    this.transition();
   };
 
   /**
    * Define the way this graph grabs data from the server and transitions
-   * into a new state, based on the supplied "data" object (expecting
-   * a GameID for this graph type).
+   * into a new state, based on the supplied "data" object 
+   * (expecting a date range (in ms), or null for this graph type).
    */
-  this.transition = function(gameId) {
-    if (!gameId || gameId < 0) return updateData({});
+  this.transition = function(start, stop) {
+    if (!start) start = 0;
+    if (!stop) stop = new Date().getTime();
 
-    $.ajax('/history/game/' + gameId, {
+    $.ajax('/history/games/' + start + "/" + stop, {
       dataType: 'json',
       success: function(data, text, jqxhr) {
         updateData(data);
@@ -118,36 +109,38 @@ function GoalsGraph(config)
   /**
    * Private helper for updating the underlying data and D3 objects
    * @param data
-   *   The new GameDay data, or {}.
+   *   The new Goals data, or {}.
    * @param callback
    *   Function to call upon completed transitioning out. Optional.
    */
-  function updateData(gameData, callback)
+  function updateData(gamesData, callback)
   {
     // Function constant
     const TRANSITION_DURATION = 1000;
-    // First create a game skeleton, if passed an empty object.
-    if (!gameData.when)
-    {
-      gameData.when = new Date();
-      gameData.threshold = 5;
-      gameData.goals = {};
-    }
-   
+    
+    // Ensure empty games list at a minimum
+    gamesData.games = gamesData.games || [];
+
     // Save our current data
-    current = gameData;
+    current = gamesData;
 
     // Obtain our canvas
     var svg = d3.select('#foos-graph svg .canvas');
 
+    // Transform games array into players array
+    // TODO  Or on the server API?
+    var playersData = getPlayersData(gamesData);
+
     // Adjust our scales
-    yScale.domain([0, gameData.threshold]);
-    var xMax = new Date(gameData.when);
-    d3.map(gameData.goals).each(function(goals, nick) {
-      playerMax = d3.max(goals, function(d) { return new Date(d.when); });
-      xMax = d3.max([xMax, playerMax]);
-    });
-    xScale.domain([new Date(gameData.when).getTime(), xMax.getTime()]);
+    var yMax = d3.max(playersData.entries(), function(d) { return d.value[d.value.length - 1].goals; });
+    yScale.domain([0, yMax]);
+    var xMax = d3.max(gamesData.games, function(d) { return new Date(d.when); });
+    var xMin = undefined;
+    if (gamesData.games.length > 0) 
+      xMin = new Date(gamesData.games[0].when);
+    xMax = xMax || new Date();
+    xMin = xMin || new Date(xMax);
+    xScale.domain([xMin, xMax]);
 
     // Refresh axes
     svg.select(".y.axis").call(yAxis);
@@ -155,10 +148,12 @@ function GoalsGraph(config)
 
     //
     // Data update with transitions
+    // TODO: These transitions are a little wonky, especially if adjusting the 
+    //   end date and leaving the start date alone.
     //
     // Associate data with all the "player" layers
     var player = svg.selectAll(".player")
-      .data(d3.entries(gameData.goals), function(d) { return d.key; });
+      .data(playersData.entries(), function(d) { return d.key; });
 
     //
     // Update list
@@ -166,39 +161,12 @@ function GoalsGraph(config)
     //   our new data to this visualization
     player.select(".line")
       .transition().duration(TRANSITION_DURATION)
-      .attr("d", function(d) { 
-        //console.log("OLD Data: ", d3.select(this).attr("d"));
-        //console.log("NEW: ", line(d.value)); 
-        return line(d.value); });
-    var updatedCircles = player.selectAll('circle')
-      .data(function(d) { return d.value; });
-    // For existing Players, we need to process Update / Enter / Exit 
-    // lists for each circle as well.
-    //
-    // Updated Player layer: Circles updated
-    updatedCircles
-      .transition().duration(TRANSITION_DURATION)
-        .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
-        .attr("cy", function(d) { return yScale(d.num); });
-    // Updated Player layer: Circles entered
-    updatedCircles.enter()
-      .append("circle")
-        .attr("class", "line-point")
-        .attr("r", 3.5)
-        .attr("cx", 0).attr("cy", canvasHeight)
-      .transition().duration(TRANSITION_DURATION)
-        .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
-        .attr("cy", function(d) { return yScale(d.num); });
-    // Updated Player layer: Circles exited
-    updatedCircles.exit()
-      .transition().duration(TRANSITION_DURATION)
-        .attr('cx', 0).attr('cy', canvasHeight)
-        .remove();
+      .attr("d", function(d) { return line(d.value); });
     player.select(".nick")
       .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
       .transition().duration(TRANSITION_DURATION)
       .attr("transform", function(d) { 
-        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.num) + ")"; 
+        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.goals) + ")"; 
       });
 
     //
@@ -215,42 +183,26 @@ function GoalsGraph(config)
       .style("stroke-width", 1.5)
       .style("stroke", function(d) { return FoosTracker.palette(d.key); })
       // TODO: Make this out of the threshold (# L segments == number of goals)
-      .attr("d", "M0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight)
+      .attr("d", function(d) {
+        return getLineAsPoint(d.value.length, 0, canvasHeight);
+      })
+      //"M0," + canvasHeight)
     .transition().duration(TRANSITION_DURATION)
       .attr("d", function(d) { return line(d.value); });
-    // Entering Player layer: Circles
-    enter.selectAll("circle")
-      .data(function(d) { return d.value; }).enter()
-      .append("circle")
-        .attr("class", "line-point")
-        .attr("r", 3.5)
-        .attr("cx", 0).attr("cy", canvasHeight)
-      .transition().duration(TRANSITION_DURATION)
-        .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
-        .attr("cy", function(d) { return yScale(d.num); });
     // Entering Player layer: Nickname text
     enter.append("text")
       .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
-      .attr("dx", 7)
+      .attr("dx", -3)
+      .attr("dy", -3)
       .attr("class", "nick")
-      .style("fill", "#fff")
+      .style("fill", "#444")
       .style("stroke-width", 0)
+      .style("text-anchor", "end")
       .attr("transform", "translate(0," + canvasHeight + ")")
     .transition().duration(TRANSITION_DURATION)
       .attr("transform", function(d) { 
-        return "translate(" + xScale(new Date(d.value.when).getTime()) + "," + yScale(d.value.num) + ")"; 
+        return "translate(" + xScale(new Date(d.value.when).getTime()) + "," + yScale(d.value.goals) + ")"; 
       })
-      .style("fill", "#444")
       .text(function(d) { return d.key; })
 
     //
@@ -258,24 +210,17 @@ function GoalsGraph(config)
     //   This is any player that previously exited, but didn't appear in the
     //   currently applied dataset.
     var exit = player.exit();
-    // Exiting Player layer: Circles
-    exit.selectAll("circle")
-      .transition().duration(TRANSITION_DURATION)
-        .attr("r", 0)
-        .attr("cx", 0)
-        .attr("cy", canvasHeight)
-      .remove();
-    // Exiting Player layer: Line
     exit.selectAll(".line")
       .transition().duration(TRANSITION_DURATION)
-      // TODO: This has to have the correct number of segments! (need a method for this):
         .attr("d", function(d) { 
+          return getLineAsPoint(d.value.length, 0, canvasHeight);
+          /*
           //console.log("Exit data: ", d);
           var line = "M0," + canvasHeight;
           for (i = 1; i < d.value.length; i++)
             line += "H0V" + canvasHeight;
           //console.log(line);
-          return line;
+          return line;*/
         })
       .remove();
     // Exiting Player layer: Nickname text
@@ -305,5 +250,38 @@ function GoalsGraph(config)
       d3.select('svg').transition().duration(TRANSITION_DURATION)
         .on('interrupt end', function() { callback(); });
     }
+  }
+
+  /**
+   * Private function to transform the Games Data array into a Players Data.
+   */
+  function getPlayersData(gamesData)
+  {
+    var playersData = d3.map();
+    gamesData.games.forEach(function(game) {
+      d3.keys(game.goals).forEach(function (nick) {
+        var total = 0;
+        if (!playersData.has(nick)) 
+          playersData.set(nick, []);
+        else
+          total = playersData.get(nick)[playersData.get(nick).length - 1].goals || 0;
+        playersData.get(nick).push({ when: game.when, goals: total + game.goals[nick]});
+      });
+    });
+
+    return playersData;
+  }
+
+  /**
+   * Private function to generate the SVG "d" representation of a line as a 
+   * point with the specified number of segments, originated at the specified
+   * x/y coords.
+   */
+  function getLineAsPoint(segments, x, y)
+  {
+    var pline = "M" + x + "," + y;
+    for (var num = 1; num < segments; num++)
+      pline += "L" + x + "," + y;
+    return pline;
   }
 }
