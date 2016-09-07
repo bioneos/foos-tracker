@@ -141,17 +141,16 @@ function getAllGames(start, stop, callback)
       details.goals = {};
       // Setup the pids with goal #0 first
       game.Players.forEach(function(player) {
-        details.goals[player.nick] = [{num:0, when: game.when}];
+        var nick = player.nick || player.name;
+        details.goals[nick] = 0;
       });
       // Push the goals
       game.Goals.forEach(function(goal) {
         // Get the player nickname
-        var nick = "";
         game.Players.forEach(function (player) { 
-          if (player.id === goal.PlayerId) nick = player.nick; 
+          var nick = player.nick || player.name;
+          if (player.id === goal.PlayerId) details.goals[nick]++; 
         });
-        var count = details.goals[nick].length;
-        details.goals[nick].push({num: count, when: goal.when});
       });
       allDetails['games'].push(details);
     });
