@@ -121,6 +121,9 @@ function getAllGames(start, stop, callback)
     where: { 
       when: { $between: [start, stop] } 
     }, 
+    order: [
+      ['when', 'ASC']
+    ],
     include: [db.Player, db.Goal]
   }).then(function(games) {
     
