@@ -21,19 +21,17 @@
         <input type="hidden" id="game-id-input">
         <i class="dropdown icon"></i>
         <div class="default text">Please select a Game...</div>
-        <div class="menu">
-          <div class="item"data-value="1">Game 1</div>
-        </div>
+        <div class="menu"> </div>
       </div>
     </div>
     <div id="date-range-selection" class="ui basic center aligned segment">
       <h4 class="ui header">Date range</h4>
       <div class="ui input">
-        <input type="textfield" id="date-range-input-start" placeholder="mm/dd/yyyy">
+        <input type="textfield" id="date-range-input-start" placeholder="yyyy/mm/dd">
       </div>
       to 
       <div class="ui input">
-        <input type="textfield" id="date-range-input-end" placeholder="mm/dd/yyyy">
+        <input type="textfield" id="date-range-input-end" placeholder="yyyy/mm/dd">
       </div>
       <div class="ui basic segment">
         <button class="ui button">Update Graph</button>

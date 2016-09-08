@@ -26,8 +26,12 @@ $(document).on('ready', function(ev) {
     // Determine the new graph type
     var newType = $(event.target).attr('id');
     var newGraph = {};
+    var data = null;
     if (newType == 'graph-g')
+    {
       newGraph = new GoalsGraph({height: 500, width: $('#foos-graph').width()});
+      data = $('#game-id-input').val();
+    }
     else if (newType == 'graph-got')
       newGraph = new GoalsOverTimeGraph({height: 500, width: $('#foos-graph').width()});
     else if (newType == 'graph-wot')
@@ -42,16 +46,32 @@ $(document).on('ready', function(ev) {
     // Transition the graphs (in / out)
     FoosTracker.graph.transitionOut(function() {
       FoosTracker.graph = newGraph;
-      //FoosTracker.graph.transitionIn(Math.floor((Math.random() * 10) + 10));  // TEMP
-      FoosTracker.graph.transitionIn();
+      FoosTracker.graph.transitionIn(data);
     });
 
     // Adjust the game options button
     $('#foos-graph-options').text('Graph Options').removeClass('disabled');
   });
+  
+  // Grab list of recent games, for the Graph Options GameID drop down
+  $.get('/games/all', {}, function(data, text, xhr) {
+    // Setup the drop-down for GameByTime
+    var active = 0;
+    data.games.forEach(function(game) {
+      active = active || game.id; 
 
-  // Initialize the game drop down (TODO get IDs)
-  $('#game-id-selection .dropdown').dropdown();
+      var when = new Date(Date.parse(game.when));
+      var h = when.getHours();
+      var m = when.getMinutes() < 10 ? "0" + when.getMinutes() : when.getMinutes();
+      var time = (h > 12) ? (h - 12) + ':' + m + 'pm' : h + ':' + m + 'am';
+      var date = getDateShortDisplay(when) + ' @ ' + time;
+      $('#game-id-selection .menu').append('<div class="item" data-value="' + game.id + '">' + date + '</div>');
+    });
+
+    // Initialize the game drop down (and set the most recent game as active)
+    $('#game-id-selection .dropdown').dropdown('set selected', active);
+  });
+
 
   // Handle Graph options button clicks
   $('#foos-graph-options').on('click', function(ev) {
@@ -74,4 +94,13 @@ $(document).on('ready', function(ev) {
 function updateWindowSize()
 {
   if (FoosTracker.graph.updateWidth) FoosTracker.graph.updateWidth($('#foos-graph').width());
+}
+
+/**
+ * Utility for date formatting.
+ */
+function getDateShortDisplay(d)
+{
+  var date = d.getFullYear() + ' / ' + (d.getMonth() + 1) + ' / ' + d.getDate();
+  return date;
 }
