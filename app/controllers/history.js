@@ -40,16 +40,19 @@ router.get('/game/:id/', function(req, res, next) {
     details.threshold = game.threshold;
     // Keyed by Player.nick, array list of times scored
     details.goals = {};
+    details.winner = game.winner;
     // Setup the pids with goal #0 first
     game.Players.forEach(function(player) {
-      details.goals[player.nick] = [{num:0, when: game.when}];
+      var nick = player.nick || player.name;
+      if (player.id === details.winner) details.winner = nick;
+      details.goals[nick] = [{num:0, when: game.when}];
     });
     // Push the goals
     game.Goals.forEach(function(goal) {
       // Get the player nickname
       var nick = "";
       game.Players.forEach(function (player) { 
-        if (player.id === goal.PlayerId) nick = player.nick; 
+        if (player.id === goal.PlayerId) nick = player.nick || player.name; 
       });
       var count = details.goals[nick].length;
       details.goals[nick].push({num: count, when: goal.when});
@@ -137,11 +140,13 @@ function getAllGames(start, stop, callback)
       details.id = game.id;
       details.when = game.when;
       details.threshold = game.threshold;
+      details.winner = game.winner;
       // Keyed by Player.nick, array list of times scored
       details.goals = {};
       // Setup the pids with goal #0 first
       game.Players.forEach(function(player) {
         var nick = player.nick || player.name;
+        if (player.id === details.winner) details.winner = nick;
         details.goals[nick] = 0;
       });
       // Push the goals
