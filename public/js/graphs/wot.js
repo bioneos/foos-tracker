@@ -1,4 +1,4 @@
-function GoalsOverTimeGraph(config)
+function WinsOverTimeGraph(config)
 {
   // Private variables
   var margin = { top: 10, right: 35, bottom: 20, left: 35 };
@@ -16,11 +16,11 @@ function GoalsOverTimeGraph(config)
   var line = d3.line().curve(d3.curveLinear)
   //var line = d3.line().curve(d3.curveMonotoneX)
     .x(function(d) { return xScale(new Date(d.when)) })
-    .y(function(d) { return yScale(d.goals) });
+    .y(function(d) { return yScale(d.wins) });
 
   // Public methods:
   // Our graph type identifier (read only)
-  this.type = function() { return 'GoT'; };
+  this.type = function() { return 'WoT'; };
 
   /**
    * Update the width of this graph (window resize events, for example).
@@ -44,7 +44,7 @@ function GoalsOverTimeGraph(config)
     player.select(".nick")
       .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
       .attr("transform", function(d) { 
-        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.goals) + ")"; 
+        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.wins) + ")"; 
       });
   };
 
@@ -69,7 +69,7 @@ function GoalsOverTimeGraph(config)
       .attr("transform", "translate(0, " + canvasHeight + ")")
       .call(xAxis);
 
-    // By default display this graph of goals for all time
+    // By default display this graph of wins for all time
     this.transition();
   };
 
@@ -130,9 +130,10 @@ function GoalsOverTimeGraph(config)
     // Transform games array into players array
     // TODO  Or on the server API?
     var playersData = getPlayersData(gamesData);
+console.log(gamesData, playersData);
 
     // Adjust our scales
-    var yMax = d3.max(playersData.entries(), function(d) { return d.value[d.value.length - 1].goals; });
+    var yMax = d3.max(playersData.entries(), function(d) { return d.value[d.value.length - 1].wins; });
     yScale.domain([0, yMax]);
     var xMax = d3.max(gamesData.games, function(d) { return new Date(d.when); });
     var xMin = undefined;
@@ -166,7 +167,7 @@ function GoalsOverTimeGraph(config)
       .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
       .transition().duration(TRANSITION_DURATION)
       .attr("transform", function(d) { 
-        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.goals) + ")"; 
+        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.wins) + ")"; 
       });
 
     //
@@ -200,7 +201,7 @@ function GoalsOverTimeGraph(config)
       .attr("transform", "translate(0," + canvasHeight + ")")
     .transition().duration(TRANSITION_DURATION)
       .attr("transform", function(d) { 
-        return "translate(" + xScale(new Date(d.value.when).getTime()) + "," + yScale(d.value.goals) + ")"; 
+        return "translate(" + xScale(new Date(d.value.when).getTime()) + "," + yScale(d.value.wins) + ")"; 
       })
       .text(function(d) { return d.key; })
 
@@ -259,12 +260,12 @@ function GoalsOverTimeGraph(config)
     var playersData = d3.map();
     gamesData.games.forEach(function(game) {
       d3.keys(game.goals).forEach(function (nick) {
-        var total = 0;
+        var wins = 0;
         if (!playersData.has(nick)) 
           playersData.set(nick, []);
         else
-          total = playersData.get(nick)[playersData.get(nick).length - 1].goals || 0;
-        playersData.get(nick).push({ when: game.when, goals: total + game.goals[nick]});
+          wins = playersData.get(nick)[playersData.get(nick).length - 1].wins || 0;
+        playersData.get(nick).push({ when: game.when, wins: wins + (game.winner == nick ? 1 : 0) });
       });
     });
 
