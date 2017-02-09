@@ -46,7 +46,8 @@
     "api",
     "form",
     "popup",
-    "state"
+    "state",
+    "sidebar"
   ],
-  "version": "2.2.2"
+  "version": "2.2.7"
 }
