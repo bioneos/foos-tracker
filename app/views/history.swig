@@ -14,16 +14,22 @@
   </div>
   <div id="date-range-selection" class="ui inverted basic center aligned segment">
     <h4 class="ui header">Date range</h4>
-    <div class="ui input">
-      <input type="textfield" id="date-range-input-start" placeholder="yyyy/mm/dd">
+    <div>
+      &lt; <div class="ui input">
+        <input type="textfield" id="date-range-input-start" placeholder="yyyy/mm/dd">
+      </div>
+      &gt;
     </div>
-    to 
-    <div class="ui input">
-      <input type="textfield" id="date-range-input-end" placeholder="yyyy/mm/dd">
+    <div>
+      &lt;
+      <div class="ui input">
+        <input type="textfield" id="date-range-input-end" placeholder="yyyy/mm/dd">
+      </div>
+      &gt;
     </div>
-  </div>
-  <div class="ui center aligned basic segment">
-    <button class="ui button">Update Graph</button>
+    <div class="ui center aligned basic segment">
+      <button id="date-range-update" class="ui button">Update Graph</button>
+    </div>
   </div>
 </div>
 

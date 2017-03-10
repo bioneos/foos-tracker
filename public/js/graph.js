@@ -46,6 +46,24 @@ $(document).on('ready', function(ev) {
       newGraph = new WinsOverTimeGraph({height: 500, width: $('#foos-graph').width()});
     else
       return console.log('Error! Couldn\'t find a graph type for "' + newType + '"...');
+  
+    // Handle Game Id selections
+    $('#game-id-selection').on('change', function(ev) {
+      FoosTracker.graph.transition($('#game-id-input').val());
+
+      $('.sidebar').sidebar('hide');
+    });
+
+    // Handle Date Range update button
+    $('#date-range-update').on('click', function(ev) {
+      var start = new Date($('#date-range-input-start').val()).getTime();
+      var end = new Date($('#date-range-input-end').val()).getTime();
+      if (!(start > 0)) start = 0;
+      if (!(end > 0)) end = new Date().getTime();
+      FoosTracker.graph.transition(start, end);
+
+      $('.sidebar').sidebar('hide');
+    });
 
     // Adjust the menu
     $('#graph-type .item.active').removeClass('active');
