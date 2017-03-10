@@ -1,44 +1,59 @@
 {% extends 'layout.swig' %}
 
-{% block content %}
-<div class="ui tiny seven item stackable menu" id="graph-type">
-  <a class="item" id="graph-g">Goals</a>
-  <a class="item" id="graph-got">Goals over Time</a>
-  <a class="item" id="graph-wot">Wins over Time</a>
-  <a class="item" id="graph-eot">Embs over Time</a>
-  <a class="item" id="graph-gl">Game Length</a>
-  <a class="item" id="graph-wogl">Wins over GL</a>
-  <a class="item" id="graph-eogl">Embs over GL</a>
+{% block sidebar %}
+<!-- Hidden sidebar content -->
+<div class="ui inverted basic segment top sidebar" style="min-height: 40%;" id="game-id-popup">
+  <div id="game-id-selection" class="ui inverted basic center aligned segment">
+    <h4 class="ui header">Single Game</h4>
+    <div class="ui selection dropdown">
+      <input type="hidden" id="game-id-input">
+      <i class="dropdown icon"></i>
+      <div class="default text">Please select a Game...</div>
+      <div class="menu"> </div>
+    </div>
+  </div>
+  <div id="date-range-selection" class="ui inverted basic center aligned segment">
+    <h4 class="ui header">Date range</h4>
+    <div class="ui input">
+      <input type="textfield" id="date-range-input-start" placeholder="yyyy/mm/dd">
+    </div>
+    to 
+    <div class="ui input">
+      <input type="textfield" id="date-range-input-end" placeholder="yyyy/mm/dd">
+    </div>
+  </div>
+  <div class="ui center aligned basic segment">
+    <button class="ui button">Update Graph</button>
+  </div>
 </div>
-<div class="ui top attached center aligned segment">
-  <button id="foos-graph-options" class="ui disabled button" data-position="bottom center">
-    Select Graph Type
-  </button>
-  <div class="ui fluid popup">
-    <div id="game-id-selection" class="ui basic center aligned segment">
-      <h4 class="ui header">Single Game</h4>
-      <div class="ui selection dropdown">
-        <input type="hidden" id="game-id-input">
-        <i class="dropdown icon"></i>
-        <div class="default text">Please select a Game...</div>
-        <div class="menu"> </div>
+
+{% endblock %}
+
+
+{% block content %}
+<!-- Graph configuration across the top -->
+<div class="ui top attached segment">
+  <div class="ui grid">
+    <div class="fifteen wide column">
+      <div class="ui tiny seven item stackable menu" id="graph-type">
+        <a class="item" id="graph-g">Goals</a>
+        <a class="item" id="graph-got">Goals over Time</a>
+        <a class="item" id="graph-wot">Wins over Time</a>
+        <a class="item" id="graph-eot">Embs over Time</a>
+        <a class="item" id="graph-gl">Game Length</a>
+        <a class="item" id="graph-wogl">Wins over GL</a>
+        <a class="item" id="graph-eogl">Embs over GL</a>
       </div>
     </div>
-    <div id="date-range-selection" class="ui basic center aligned segment">
-      <h4 class="ui header">Date range</h4>
-      <div class="ui input">
-        <input type="textfield" id="date-range-input-start" placeholder="yyyy/mm/dd">
-      </div>
-      to 
-      <div class="ui input">
-        <input type="textfield" id="date-range-input-end" placeholder="yyyy/mm/dd">
-      </div>
-      <div class="ui basic segment">
-        <button class="ui button">Update Graph</button>
-      </div>
+    <div class="one wide center aligned column">
+      <button id="foos-graph-options" class="ui d isabled circular icon button">
+        <i class="icon large setting"></i>
+      </button>
     </div>
   </div>
 </div>
+
+<!-- Main graph --> 
 <div class="ui bottom attached segment">
   <div id="foos-graph">
     <svg></svg>

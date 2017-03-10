@@ -21,8 +21,8 @@ function GoalsGraph(config)
   var yAxis = d3.axisLeft(yScale).ticks(6, "d");
   // D3 Graph render function (step-after line)
   var line = d3.line().curve(d3.curveStepAfter)
-    .x(function(d) { return xScale(new Date(d.when).getTime()) })
-    .y(function(d) { return yScale(d.num) });
+    .x(function(d) { return xScale(new Date(d.when).getTime()); })
+    .y(function(d) { return yScale(d.num); });
 
   // Public methods:
   // Our graph type identifier (read only)
@@ -251,7 +251,7 @@ function GoalsGraph(config)
         return "translate(" + xScale(new Date(d.value.when).getTime()) + "," + yScale(d.value.num) + ")"; 
       })
       .style("fill", "#444")
-      .text(function(d) { return d.key; })
+      .text(function(d) { return d.key; });
 
     //
     // Exit list

@@ -19,7 +19,15 @@ $(document).on('ready', function(ev) {
   });
 
   // Initialize the popup window
-  $('#foos-graph-options').popup({ 'on': 'click' });
+  $('.sidebar').sidebar('setting', 'transition', 'overlay');
+  $('.sidebar').sidebar('attach events', '#foos-graph-options', 'show');
+  /*$('#foos-graph-options').popup({ 
+    'popup': '#game-id-popup',
+    'on': 'click', 
+    'movePopup': false,
+    'setFluidWidth': true,
+    'position': 'bottom right' 
+  });*/
 
   // Handle Graph Type selections Clicks
   $('#graph-type .item').on('click', function(ev) {
@@ -50,7 +58,7 @@ $(document).on('ready', function(ev) {
     });
 
     // Adjust the game options button
-    $('#foos-graph-options').text('Graph Options').removeClass('disabled');
+    $('#foos-graph-options').removeClass('disabled');
   });
   
   // Grab list of recent games, for the Graph Options GameID drop down

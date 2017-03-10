@@ -14,7 +14,7 @@ function FoosGraph()
   // Current graph type possibilities
   // [Goals, Goals over Time, W over Time, Emb over Time, Game Length, Emb per Game Length]
   // [G, GoT, WoT, WoT, GL, WoGL, EoGL]
-  this.type = function() { return 'placeholder' };
+  this.type = function() { return 'placeholder'; };
   this.updateWidth = function(newWidth) {
     // Do nothing 
     // (our placeholder is defined as a relatively positioned element)

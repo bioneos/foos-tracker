@@ -57,6 +57,8 @@ function setupGoalsByTime(container)
   viz.bytime.line = d3.svg.line()
     .interpolate("step-after")
     //.interpolate("linear")
+    //.interpolate("monotone")
+    //.interpolate("bundle").tension(.8)
     //.interpolate("cardinal").tension(.8)
     .x(function(d) { return viz.bytime.x(new Date(d.when)); })
     .y(function(d) { return viz.bytime.y(d.num); });
@@ -263,7 +265,6 @@ function setupGoalsByTime(container)
  */
 function changeGameGoalsByTime()
 {
-console.log("CALLED");
   var gameId = $('#game-goals-by-time').val();
   if (gameId <= 0) loadGameGoalsByTime({});
   else
@@ -318,7 +319,7 @@ function loadGameGoalsByTime(gameData)
   var player = svg.selectAll(".player")
     .data(d3.entries(gameData.goals), function(d) { return d.key; });
   player.select(".line").transition().duration(1000)
-    .attr("d", function(d) { return viz.bytime.line(d.value); });
+    .attr("d", function(d) { console.log("OLD Data: ", d3.select(this).attr("d")); console.log("NEW: ", viz.bytime.line(d.value)); return viz.bytime.line(d.value); });
   var circles = player.selectAll("circle")
     .data(function(d) { return d.value; });
   // Existing data
@@ -385,7 +386,7 @@ function loadGameGoalsByTime(gameData)
     .attr("class", "nick")
     .style("stroke-width", 0)
     .style("fill", "#444")
-    .text(function(d) { return d.key; })
+    .text(function(d) { return d.key; });
 
   // Exit list
   var exit = player.exit();
@@ -397,7 +398,14 @@ function loadGameGoalsByTime(gameData)
   exit.selectAll(".line")
     .transition().duration(1000)
     // TODO: This has to have the correct number of segments! (need a method for this):
-      .attr("d", "M0," + viz.bytime.height + "H0V" + viz.bytime.height)
+      .attr("d", function(d) { 
+        console.log("Exit data: ", d);
+        var line = "M0," + viz.bytime.height;
+        for (i = 1; i < d.value.length; i++)
+          line += "H0V" + viz.bytime.height;
+        console.log(line);
+        return line;
+      })
     .remove();
   exit.selectAll(".nick")
     .transition().duration(1000)

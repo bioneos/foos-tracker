@@ -15,8 +15,8 @@ function GoalsOverTimeGraph(config)
   // D3 Graph render function (step-after line)
   var line = d3.line().curve(d3.curveLinear)
   //var line = d3.line().curve(d3.curveMonotoneX)
-    .x(function(d) { return xScale(new Date(d.when)) })
-    .y(function(d) { return yScale(d.goals) });
+    .x(function(d) { return xScale(new Date(d.when)); })
+    .y(function(d) { return yScale(d.goals); });
 
   // Public methods:
   // Our graph type identifier (read only)
@@ -135,7 +135,7 @@ function GoalsOverTimeGraph(config)
     var yMax = d3.max(playersData.entries(), function(d) { return d.value[d.value.length - 1].goals; });
     yScale.domain([0, yMax]);
     var xMax = d3.max(gamesData.games, function(d) { return new Date(d.when); });
-    var xMin = undefined;
+    var xMin;
     if (gamesData.games.length > 0) 
       xMin = new Date(gamesData.games[0].when);
     xMax = xMax || new Date();
@@ -202,7 +202,7 @@ function GoalsOverTimeGraph(config)
       .attr("transform", function(d) { 
         return "translate(" + xScale(new Date(d.value.when).getTime()) + "," + yScale(d.value.goals) + ")"; 
       })
-      .text(function(d) { return d.key; })
+      .text(function(d) { return d.key; });
 
     //
     // Exit list

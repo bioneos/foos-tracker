@@ -15,8 +15,8 @@ function WinsOverTimeGraph(config)
   // D3 Graph render function (step-after line)
   var line = d3.line().curve(d3.curveLinear)
   //var line = d3.line().curve(d3.curveMonotoneX)
-    .x(function(d) { return xScale(new Date(d.when)) })
-    .y(function(d) { return yScale(d.wins) });
+    .x(function(d) { return xScale(new Date(d.when)); })
+    .y(function(d) { return yScale(d.wins); });
 
   // Public methods:
   // Our graph type identifier (read only)
@@ -130,13 +130,12 @@ function WinsOverTimeGraph(config)
     // Transform games array into players array
     // TODO  Or on the server API?
     var playersData = getPlayersData(gamesData);
-console.log(gamesData, playersData);
 
     // Adjust our scales
     var yMax = d3.max(playersData.entries(), function(d) { return d.value[d.value.length - 1].wins; });
     yScale.domain([0, yMax]);
     var xMax = d3.max(gamesData.games, function(d) { return new Date(d.when); });
-    var xMin = undefined;
+    var xMin;
     if (gamesData.games.length > 0) 
       xMin = new Date(gamesData.games[0].when);
     xMax = xMax || new Date();
@@ -203,7 +202,7 @@ console.log(gamesData, playersData);
       .attr("transform", function(d) { 
         return "translate(" + xScale(new Date(d.value.when).getTime()) + "," + yScale(d.value.wins) + ")"; 
       })
-      .text(function(d) { return d.key; })
+      .text(function(d) { return d.key; });
 
     //
     // Exit list
@@ -214,13 +213,6 @@ console.log(gamesData, playersData);
       .transition().duration(TRANSITION_DURATION)
         .attr("d", function(d) { 
           return getLineAsPoint(d.value.length, 0, canvasHeight);
-          /*
-          //console.log("Exit data: ", d);
-          var line = "M0," + canvasHeight;
-          for (i = 1; i < d.value.length; i++)
-            line += "H0V" + canvasHeight;
-          //console.log(line);
-          return line;*/
         })
       .remove();
     // Exiting Player layer: Nickname text
