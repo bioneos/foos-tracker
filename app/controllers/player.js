@@ -80,6 +80,8 @@ router.get('/leaderboard', function(req, res, next) {
         'embs' : 0,
         'gameDayWins' : 0,
         'gameDayLosses' : 0,
+        // Array for how many people each game day tie was with.
+        'gameDayTiesRec' : [],
         'gameDayEmbs' : 0,
         'goals' : 0
       } ;
@@ -134,8 +136,10 @@ router.get('/leaderboard', function(req, res, next) {
                   // Iterate through the array and then clear it out for the next date.
                   // after adding the correct values to wins and losses for each player.
                   winnerIdArr.forEach(function(winnerId) {
-                    leaderboard[winnerId].gameDayWins += 1/winnerIdArr.length;
-                    leaderboard[winnerId].gameDayLosses += (winnerIdArr.length-1)/winnerIdArr.length;
+                  if (winnerIdArr.length == 1)
+                    leaderboard[winnerId].gameDayWins += 1
+                  else if (winnerIdArr.length > 1)
+                    leaderboard[winnerId].gameDayTiesRec.push(winnerIdArr.length);
                   });
                   date = row.date;
                   highCount = row.count;

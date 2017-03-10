@@ -32,7 +32,7 @@
       <thead>
         <tr>
           <th class="single line">Player</th>
-          <th>Goals For</th>
+          <th class="game">Goals For</th>
           <th class="game record">Record</th>
           <th class="game record-fw">Wins</th>
           <th class="game record-fw">Losses</th>
@@ -41,6 +41,7 @@
           <th class="gd record hidden">GD Record</th>
           <th class="gd record-fw hidden">GD Wins</th>
           <th class="gd record-fw hidden">GD Losses</th>
+          <th class="gd record-fw hidden">GD Ties</th>
           <th class="gd record-fw hidden">GD Embarrassments</th>
           <th class="gd hidden">GD Win %</th>
       </thead>
