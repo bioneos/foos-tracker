@@ -17,8 +17,8 @@ gulp.task('init', function() {
 // Lint Task
 gulp.task('lint', function() {
   gulp.src('./public/js/**/*.js')
-    .pipe(jshint())
-    .pipe(jshint.reporter('default', {verbose: true}));
+    .pipe(jshint({esversion: 6}))
+    .pipe(jshint.reporter('default', {verbose: true, esversion: 6}));
 });
 
 gulp.task('sass', function () {
