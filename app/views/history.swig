@@ -32,26 +32,25 @@
 
 {% block content %}
 <!-- Graph configuration across the top -->
-<div class="ui top attached segment">
-  <div class="ui grid">
-    <div class="fifteen wide column">
-      <div class="ui tiny seven item stackable menu" id="graph-type">
-        <a class="item" id="graph-g">Goals</a>
-        <a class="item" id="graph-got">Goals over Time</a>
-        <a class="item" id="graph-wot">Wins over Time</a>
-        <a class="item" id="graph-eot">Embs over Time</a>
-        <a class="item" id="graph-gl">Game Length</a>
-        <a class="item" id="graph-wogl">Wins over GL</a>
-        <a class="item" id="graph-eogl">Embs over GL</a>
-      </div>
-    </div>
-    <div class="one wide center aligned column">
-      <button id="foos-graph-options" class="ui d isabled circular icon button">
-        <i class="icon large setting"></i>
-      </button>
+<div class="ui top attached center aligned segment">
+  <div class="ui large header dropdown" id="graph-type">
+    <input type="hidden" name="graph-type-input">
+    <div class="text">Select a Graph...</div>
+    <div class="menu">
+      <div class="item" id="graph-g">Goals</div>
+      <div class="item" id="graph-got">Goals over Time</div>
+      <div class="item" id="graph-wot">Wins over Time</div>
+      <div class="disabled item" id="graph-eot">Embs over Time</div>
+      <div class="disabled item" id="graph-gl">Game Length</div>
+      <div class="disabled item" id="graph-wogl">Wins over GL</div>
+      <div class="disabled item" id="graph-eogl">Embs over GL</div>
     </div>
   </div>
+  <a id="foos-graph-options" class="ui circular small right floated icon button">
+    <i class="icon setting"></i>
+  </a>
 </div>
+
 
 <!-- Main graph --> 
 <div class="ui bottom attached segment">
@@ -95,6 +94,7 @@
   <script>
     $(document).on('ready', function() { 
       $('.ui.model').modal();
+      $('.ui.dropdown').dropdown();
     });
   </script>
 {% endblock %}
