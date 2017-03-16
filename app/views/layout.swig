@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width">
-  <title>{{ title }}</title>
+  {% if !title %}<title>BN Foosball Tracker</title>{% endif %}
+  {% if title %}<title>[ {{ title }} ]  BN Foosball Tracker</title>{% endif %}
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/semantic.min.css">
+  <link rel="stylesheet" href="/css/style.css">
   {% if ENV_DEVELOPMENT %}
     <script src="http://localhost:35729/livereload.js"></script>
   {% endif %}
@@ -18,7 +19,7 @@
       <div class="ui container">
         <a href="/" class="header item">
           <img id="main-logo" class="logo" src="/images/logo.png">
-          {% if title %}<div id="main-title">{{title}}</div>{% endif %}
+          {% if pagetitle %}<div id="main-title">{{pagetitle}}</div>{% endif %}
         </a>
       </div>
     </header>

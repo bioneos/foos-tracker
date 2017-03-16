@@ -7,12 +7,7 @@ module.exports = function (app) {
 };
 
 router.get('/', function (req, res, next) {
-  res.render('index', {title: 'BN Foosball Score Tracker'});
-});
-router.get('/history', function (req, res, next) {
-  // TODO: get score of last game
-  // Maybe graph?
-  res.render('history', {title: 'Score History :: BN Foosball Score Tracker'});
+  res.render('index', {pagetitle: 'Foosball Tracker'});
 });
 
   /*db.Game.findAll().success(function (games) {

@@ -14,7 +14,7 @@ module.exports = function (app) {
  */
 router.get('/', function(req, res, next) {
 
-  res.render('history', {});
+  res.render('history', {title: 'Statistics'});
 });
 
 

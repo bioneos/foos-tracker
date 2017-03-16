@@ -13,7 +13,7 @@ module.exports = function (app) {
  */
 router.get('/create', function(req, res, next) {
   // Just serve up our create UI
-  res.render('player') ;
+  res.render('player', { title: 'Create Player'}) ;
 }) ;
 
 /**
@@ -24,8 +24,8 @@ router.get('/:id/edit', function(req, res, next) {
 
   // This is an edit, so attempt to find our player
   db.Player.find({ where : { id: req.params.id }}).then(function(player) {
-    if (player) res.render('player', { player: player }) ;
-    else res.render('player', { idNotFound: true }) ;
+    if (player) res.render('player', { title: 'Edit Player', player: player }) ;
+    else res.render('player', { title: 'Edit Player', idNotFound: true }) ;
   }) ;
 }) ;
 
