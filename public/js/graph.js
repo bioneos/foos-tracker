@@ -35,11 +35,13 @@ $(document).on('ready', function(ev) {
     var newType = $(event.target).attr('id');
     var newGraph = {};
     var data = null;
-    if (newType == 'graph-g')
+    if (newType == 'graph-game')
     {
-      newGraph = new GoalsGraph({height: 500, width: $('#foos-graph').width()});
+      newGraph = new GameGraph({height: 500, width: $('#foos-graph').width()});
       data = $('#game-id-input').val();
     }
+    else if (newType == 'graph-g')
+      newGraph = new GoalsGraph({height: 500, width: $('#foos-graph').width()});
     else if (newType == 'graph-got')
       newGraph = new GoalsOverTimeGraph({height: 500, width: $('#foos-graph').width()});
     else if (newType == 'graph-wot')
@@ -101,7 +103,7 @@ $(document).on('ready', function(ev) {
 
   // Handle Graph options button clicks
   $('#foos-graph-options').on('click', function(ev) {
-    if (FoosTracker.graph.type() == 'G')
+    if (FoosTracker.graph.type() == 'GAME')
     {
       $('#date-range-selection').hide();
       $('#game-id-selection').show();
