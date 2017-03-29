@@ -27,27 +27,43 @@ function GoalsGraph(config)
    */
   this.updateWidth = function(newWidth) {
     width = newWidth - margin.left - margin.right;
+    radius = Math.min(width, canvasHeight) / 2;
+    arc = d3.arc().outerRadius(radius - 10).innerRadius(0);
+    textarc = d3.arc().outerRadius(radius - 10).innerRadius((radius - 10) / 3);
     // Maybe update height too?
+    
+    // Update transform on graph canvas
+    d3.select('.canvas')
+      .attr('transform', 'translate(' + (width / 2) + ', ' + (canvasHeight / 2) + ')');
 
-    // TODO
-    // Update data to correct position (Instantaneous)
-//    var playersData = getPlayersData(current);
-//    var player = d3.select('svg').selectAll('.player')
-//      .data(playersData.entries(), function(d) { return d.key; });
+    // Update data to correct positions (Instantaneous)
+    // We cannot use a transition into this as the event has to be processed
+    // very quickly, but luckily we just need to apply the new data really.
+    var playersData = getPlayersData(current);
+    var player = d3.select('svg').selectAll('.player')
+      .data(pie(playersData.entries()), function(d) { return d.data.key; });
+
+    // Arc:
+    player.select(".arc")
+      .datum(function(d) { return d; })
+      .attr("d", arc);
 
     // Nick:
-//    player.select(".nick")
-//      .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
-//      .attr("transform", function(d) { 
-//        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.goals) + ")"; 
-//      });
+    player.select(".nick")
+      .datum(function(d) { return d; })
+      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .text(function(d) { return d.data.key; });
+    // Goals:
+    player.select(".goals")
+      .datum(function(d) { return d; })
+      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .text(function(d) { return d.data.value; });
   };
 
   /**
    * Define the way this graph transitions into view.
    */
   this.transitionIn = function(data) {
-    // TODO - maybe grow the axis from the bottom left
     // Remove old canvas (If any)  TODO: maybe unnecessary?
     d3.select('#foos-graph svg g.canvas').remove();
     // Add our canvas
@@ -122,8 +138,7 @@ function GoalsGraph(config)
     // Associate data with all the "player" layers
     var player = svg.selectAll(".player")
       .data(pie(playersData.entries()), function(d) { return d.data.key; });
-    // TODO: define id too?
-
+    
     //
     // Update list
     //   This is any Player layer that already existed before we applied
