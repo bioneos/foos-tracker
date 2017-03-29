@@ -121,21 +121,27 @@ function GoalsGraph(config)
     //
     // Associate data with all the "player" layers
     var player = svg.selectAll(".player")
-      .data(pie(playersData.entries()), function(d) { return d.key; });
+      .data(pie(playersData.entries()), function(d) { return d.data.key; });
+    // TODO: define id too?
 
     //
     // Update list
     //   This is any Player layer that already existed before we applied
     //   our new data to this visualization
-    /*player.select("")
-      .transition().duration(TRANSITION_DURATION)
-      .attr("d", function(d) { console.log('player d:', d); return pie(d.value); });
+    player.select(".arc")
+    .transition().duration(TRANSITION_DURATION)
+      .attrTween('d', arcTween)
     player.select(".nick")
-      .datum(function(d) { return {key: d.key, value: d.value}; })
-      .transition().duration(TRANSITION_DURATION);
-      .attr("transform", function(d) { 
-        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.goals) + ")"; 
-      });*/
+      .datum(function(d) { return d; })
+    .transition().duration(TRANSITION_DURATION)
+      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .text(function(d) { return d.data.key; });
+    player.select(".goals")
+      .datum(function(d) { return d; })
+    .transition().duration(TRANSITION_DURATION)
+      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .text(function(d) { return d.data.value; });
+
 
     //
     // Enter list
@@ -155,7 +161,7 @@ function GoalsGraph(config)
     enter.append("text")
       .datum(function(d) { return d; })
       .attr("class", "nick")
-      .style("fill", "#444")
+      .style("fill", "#222")
       .style("font-weight", "bold")
       .style("stroke-width", 0)
       .style("text-anchor", "middle")
@@ -167,7 +173,7 @@ function GoalsGraph(config)
       .datum(function(d) { return d; })
       .attr("dy", "1.1em")
       .attr("class", "goals")
-      .style("fill", "#444")
+      .style("fill", "#222")
       .style("font-weight", "bold")
       .style("stroke-width", 0)
       .style("text-anchor", "middle")
