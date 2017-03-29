@@ -1,28 +1,20 @@
 function GoalsGraph(config)
 {
   // Private variables
-  var margin = { top: 10, right: 35, bottom: 20, left: 15 };
+  const margin = { top: 15, right: 15, bottom: 15, left: 15 };
+  const padding = 10;
   var canvasHeight = config.height - margin.top - margin.bottom; 
   var width = config.width - margin.left - margin.right;
   // Track the currently displayed data (for updateWidth() calls)
-  var current = 0; 
+  var current = {}; 
 
-  // D3 related objects for Axes
-  var xScale = d3.scaleLinear([0, 60 * 1000]).range([0, width]);
-  var yScale = d3.scaleLinear().domain([0, 5]).range([canvasHeight, 0]);
-  var xAxis = d3.axisBottom(xScale).tickFormat(function(d) {
-    var s = Math.floor((d - xScale.domain()[0]) / 1000);
-
-    var hr = Math.floor(s / 3600);
-    var min = Math.floor((s - (hr * 3600)) / 60);
-    var sec = Math.floor(s % 60);
-    return (hr > 0) ? hr + 'hr' : min + ':' + ((sec < 10) ? '0' + sec : sec); 
-  });
-  var yAxis = d3.axisLeft(yScale).ticks(6, "d");
-  // D3 Graph render function (step-after line)
-  var line = d3.line().curve(d3.curveStepAfter)
-    .x(function(d) { return xScale(new Date(d.when).getTime()); })
-    .y(function(d) { return yScale(d.num); });
+  // Radius measurement
+  var radius = Math.min(width, canvasHeight) / 2;
+  // D3 Graph render functions (arc / pie)
+  var arc = d3.arc().outerRadius(radius - 10).innerRadius(0);
+  var textarc = d3.arc().outerRadius(radius - 10).innerRadius((radius - 10) / 3);
+  var pie = d3.pie()
+    .value(function(d) { return d.value; });
 
   // Public methods:
   // Our graph type identifier (read only)
@@ -35,63 +27,64 @@ function GoalsGraph(config)
    */
   this.updateWidth = function(newWidth) {
     width = newWidth - margin.left - margin.right;
-    xScale.range([0, width]);
-    d3.select('svg g.x.axis').call(xAxis);
+    radius = Math.min(width, canvasHeight) / 2;
+    arc = d3.arc().outerRadius(radius - 10).innerRadius(0);
+    textarc = d3.arc().outerRadius(radius - 10).innerRadius((radius - 10) / 3);
+    // Maybe update height too?
+    
+    // Update transform on graph canvas
+    d3.select('.canvas')
+      .attr('transform', 'translate(' + (width / 2) + ', ' + (canvasHeight / 2) + ')');
 
-    // Update data to correct position (Instantaneous)
+    // Update data to correct positions (Instantaneous)
+    // We cannot use a transition into this as the event has to be processed
+    // very quickly, but luckily we just need to apply the new data really.
+    var playersData = getPlayersData(current);
     var player = d3.select('svg').selectAll('.player')
-      .data(d3.entries(current.goals), function(d) { return d.key; });
+      .data(pie(playersData.entries()), function(d) { return d.data.key; });
 
-    // Line:
-    player.select('.line')
-      .attr("d", function(d) { return line(d.value); });
-    // Circles:
-    player.selectAll('circle')
-      .data(function(d) { return d.value; })
-        .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
-        .attr("cy", function(d) { return yScale(d.num); });
+    // Arc:
+    player.select(".arc")
+      .datum(function(d) { return d; })
+      .attr("d", arc);
+
     // Nick:
     player.select(".nick")
-      .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
-      .attr("transform", function(d) { 
-        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.num) + ")"; 
-      });
+      .datum(function(d) { return d; })
+      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .text(function(d) { return d.data.key; });
+    // Goals:
+    player.select(".goals")
+      .datum(function(d) { return d; })
+      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .text(function(d) { return d.data.value; });
   };
 
   /**
    * Define the way this graph transitions into view.
    */
   this.transitionIn = function(data) {
-    // TODO - maybe grow the axis from the bottom left
     // Remove old canvas (If any)  TODO: maybe unnecessary?
     d3.select('#foos-graph svg g.canvas').remove();
     // Add our canvas
     var canvas = d3.select('#foos-graph svg').append('g')
       .attr('class', 'canvas')
-      .attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')');
+      .attr('transform', 'translate(' + (width / 2) + ', ' + (canvasHeight / 2) + ')');
 
-    // Setup the initial graph axes
-    canvas.append("g")
-      .attr("class", "y axis")
-      .call(yAxis);
-    canvas.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0, " + canvasHeight + ")")
-      .call(xAxis);
-
-    // If data is supplied, transition in the data now (expecting a game id)
-    if (data) this.transition(data);
+    // By default display this graph of goals for all time
+    this.transition();
   };
 
   /**
    * Define the way this graph grabs data from the server and transitions
-   * into a new state, based on the supplied "data" object (expecting
-   * a GameID for this graph type).
+   * into a new state, based on the supplied "data" object 
+   * (expecting a date range (in ms), or null for this graph type).
    */
-  this.transition = function(gameId) {
-    if (!gameId || gameId < 0) return updateData({});
+  this.transition = function(start, stop) {
+    if (!start) start = 0;
+    if (!stop) stop = new Date().getTime();
 
-    $.ajax('/history/game/' + gameId, {
+    $.ajax('/history/games/' + start + "/" + stop, {
       dataType: 'json',
       success: function(data, text, jqxhr) {
         updateData(data);
@@ -118,170 +111,112 @@ function GoalsGraph(config)
   /**
    * Private helper for updating the underlying data and D3 objects
    * @param data
-   *   The new GameDay data, or {}.
+   *   The new Goals data, or {}.
    * @param callback
    *   Function to call upon completed transitioning out. Optional.
    */
-  function updateData(gameData, callback)
+  function updateData(gamesData, callback)
   {
     // Function constant
     const TRANSITION_DURATION = 1000;
-    // First create a game skeleton, if passed an empty object.
-    if (!gameData.when)
-    {
-      gameData.when = new Date();
-      gameData.threshold = 5;
-      gameData.goals = {};
-    }
-   
+    
+    // Ensure empty games list at a minimum
+    gamesData.games = gamesData.games || [];
+
     // Save our current data
-    current = gameData;
+    current = gamesData;
 
     // Obtain our canvas
     var svg = d3.select('#foos-graph svg .canvas');
 
-    // Adjust our scales
-    yScale.domain([0, gameData.threshold]);
-    var xMax = new Date(gameData.when);
-    d3.map(gameData.goals).each(function(goals, nick) {
-      playerMax = d3.max(goals, function(d) { return new Date(d.when); });
-      xMax = d3.max([xMax, playerMax]);
-    });
-    xScale.domain([new Date(gameData.when).getTime(), xMax.getTime()]);
-
-    // Refresh axes
-    svg.select(".y.axis").call(yAxis);
-    svg.select(".x.axis").call(xAxis);
-
+    // Transform games array into players array
+    // TODO  Or on the server API?
+    var playersData = getPlayersData(gamesData);
     //
     // Data update with transitions
     //
     // Associate data with all the "player" layers
     var player = svg.selectAll(".player")
-      .data(d3.entries(gameData.goals), function(d) { return d.key; });
-
+      .data(pie(playersData.entries()), function(d) { return d.data.key; });
+    
     //
     // Update list
     //   This is any Player layer that already existed before we applied
     //   our new data to this visualization
-    player.select(".line")
-      .transition().duration(TRANSITION_DURATION)
-      .attr("d", function(d) { 
-        //console.log("OLD Data: ", d3.select(this).attr("d"));
-        //console.log("NEW: ", line(d.value)); 
-        return line(d.value); });
-    var updatedCircles = player.selectAll('circle')
-      .data(function(d) { return d.value; });
-    // For existing Players, we need to process Update / Enter / Exit 
-    // lists for each circle as well.
-    //
-    // Updated Player layer: Circles updated
-    updatedCircles
-      .transition().duration(TRANSITION_DURATION)
-        .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
-        .attr("cy", function(d) { return yScale(d.num); });
-    // Updated Player layer: Circles entered
-    updatedCircles.enter()
-      .append("circle")
-        .attr("class", "line-point")
-        .attr("r", 3.5)
-        .attr("cx", 0).attr("cy", canvasHeight)
-      .transition().duration(TRANSITION_DURATION)
-        .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
-        .attr("cy", function(d) { return yScale(d.num); });
-    // Updated Player layer: Circles exited
-    updatedCircles.exit()
-      .transition().duration(TRANSITION_DURATION)
-        .attr('cx', 0).attr('cy', canvasHeight)
-        .remove();
+    player.select(".arc")
+    .transition().duration(TRANSITION_DURATION)
+      .attrTween('d', arcTween)
     player.select(".nick")
-      .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
-      .transition().duration(TRANSITION_DURATION)
-      .attr("transform", function(d) { 
-        return "translate(" + xScale(new Date(d.value.when)) + "," + yScale(d.value.num) + ")"; 
-      });
+      .datum(function(d) { return d; })
+    .transition().duration(TRANSITION_DURATION)
+      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .text(function(d) { return d.data.key; });
+    player.select(".goals")
+      .datum(function(d) { return d; })
+    .transition().duration(TRANSITION_DURATION)
+      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .text(function(d) { return d.data.value; });
+
 
     //
     // Enter list
     //   This is any new player that didn't appear in previously applied data.
     var enter = player.enter()
       .append("g")
-        .style("stroke", function(d) { return FoosTracker.palette(d.key); })
-        .style("fill", function(d) { return FoosTracker.palette(d.key); })
         .attr("class", "player");
-    // Entering Player layer: Line
+    // Entering Player layer: pie arc
     enter.append("path")
-      .attr("class", "line")
-      .style("stroke-width", 1.5)
-      .style("stroke", function(d) { return FoosTracker.palette(d.key); })
-      // TODO: Make this out of the threshold (# L segments == number of goals)
-      .attr("d", "M0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight + 
-        "L0," + canvasHeight)
+      .attr("class", "arc")
+      .style("fill", function(d) { return FoosTracker.palette(d.data.key); })
+      // Start each entering arc at a start/end angle of 0*
+      .each(function(d) { this._current = {startAngle:0, endAngle: 0}; })
     .transition().duration(TRANSITION_DURATION)
-      .attr("d", function(d) { return line(d.value); });
-    // Entering Player layer: Circles
-    enter.selectAll("circle")
-      .data(function(d) { return d.value; }).enter()
-      .append("circle")
-        .attr("class", "line-point")
-        .attr("r", 3.5)
-        .attr("cx", 0).attr("cy", canvasHeight)
-      .transition().duration(TRANSITION_DURATION)
-        .attr("cx", function(d) { return xScale(new Date(d.when).getTime()); })
-        .attr("cy", function(d) { return yScale(d.num); });
+      .attrTween('d', arcTween)
     // Entering Player layer: Nickname text
     enter.append("text")
-      .datum(function(d) { return {key: d.key, value: d.value[d.value.length - 1]}; })
-      .attr("dx", 7)
+      .datum(function(d) { return d; })
       .attr("class", "nick")
-      .style("fill", "#fff")
+      .style("fill", "#222")
+      .style("font-weight", "bold")
       .style("stroke-width", 0)
-      .attr("transform", "translate(0," + canvasHeight + ")")
+      .style("text-anchor", "middle")
+      .attr("transform", "translate(0,0)")
     .transition().duration(TRANSITION_DURATION)
-      .attr("transform", function(d) { 
-        return "translate(" + xScale(new Date(d.value.when).getTime()) + "," + yScale(d.value.num) + ")"; 
-      })
-      .style("fill", "#444")
-      .text(function(d) { return d.key; });
+      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .text(function(d) { return d.data.key; });
+    enter.append("text")
+      .datum(function(d) { return d; })
+      .attr("dy", "1.1em")
+      .attr("class", "goals")
+      .style("fill", "#222")
+      .style("font-weight", "bold")
+      .style("stroke-width", 0)
+      .style("text-anchor", "middle")
+      .attr("transform", "translate(0,0)")
+    .transition().duration(TRANSITION_DURATION)
+      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .text(function(d) { return d.data.value; });
 
     //
     // Exit list
     //   This is any player that previously exited, but didn't appear in the
     //   currently applied dataset.
     var exit = player.exit();
-    // Exiting Player layer: Circles
-    exit.selectAll("circle")
+    // Transition all arcs to 0 angle
+    exit.selectAll(".arc")
+      .datum({ startAngle: 0, endAngle: 0 })
       .transition().duration(TRANSITION_DURATION)
-        .attr("r", 0)
-        .attr("cx", 0)
-        .attr("cy", canvasHeight)
+        .attrTween('d', arcTween)
       .remove();
-    // Exiting Player layer: Line
-    exit.selectAll(".line")
-      .transition().duration(TRANSITION_DURATION)
-      // TODO: This has to have the correct number of segments! (need a method for this):
-        .attr("d", function(d) { 
-          //console.log("Exit data: ", d);
-          var line = "M0," + canvasHeight;
-          for (i = 1; i < d.value.length; i++)
-            line += "H0V" + canvasHeight;
-          //console.log(line);
-          return line;
-        })
-      .remove();
+    exit.selectAll(".nick")
     // Exiting Player layer: Nickname text
     exit.selectAll(".nick")
       .transition().duration(TRANSITION_DURATION)
-        .attr("transform", "translate(0, " + canvasHeight + ")")
+        .attr("transform", "translate(0, 0)")
+      .remove();
+    exit.selectAll(".goals")
+      .transition().duration(TRANSITION_DURATION)
+        .attr("transform", "translate(0, 0)")
       .remove();
     // At the end of the transition, remove the player layer entirely
     exit.transition().duration(TRANSITION_DURATION).remove();
@@ -305,5 +240,46 @@ function GoalsGraph(config)
       d3.select('svg').transition().duration(TRANSITION_DURATION)
         .on('interrupt end', function() { callback(); });
     }
+  }
+
+  /**
+   * Private function to transform the Games Data array into a Players Data.
+   *   Simple Map:
+   *   {
+   *     'Player Nick': <num_goals>
+   *   }
+   */
+  function getPlayersData(gamesData)
+  {
+    var playersData = d3.map();
+    gamesData.games.forEach(function(game) {
+      d3.keys(game.goals).forEach(function (nick) {
+        var total = 0;
+        if (!playersData.has(nick)) 
+          playersData.set(nick, 0);
+        playersData.set(nick, playersData.get(nick) + game.goals[nick]);
+      });
+    });
+
+    return playersData;
+  }
+
+  /**
+   * Custom arc tween method, since the defaults cannot handle arcs > 180*.
+   * See discussion here, and detailed example underneath:
+   *   http://stackoverflow.com/questions/21285385/d3-pie-chart-arc-is-invisible-in-transition-to-180%C2%B0
+   *   http://bl.ocks.org/mbostock/1346410
+   */
+  // Store the displayed angles in _current.
+  // Then, interpolate from _current to the new angles.
+  // During the transition, _current is updated in-place by d3.interpolate.
+  function arcTween(a)
+  {
+    this._current = this._current || a;
+    var i = d3.interpolate(this._current, a);
+    this._current = i(0);
+    return function(t) {
+      return arc(i(t));
+    };
   }
 }

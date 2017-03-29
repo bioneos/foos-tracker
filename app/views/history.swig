@@ -43,6 +43,7 @@
     <input type="hidden" name="graph-type-input">
     <div class="text">Select a Graph...</div>
     <div class="menu">
+      <div class="item" id="graph-game">Game</div>
       <div class="item" id="graph-g">Goals</div>
       <div class="item" id="graph-got">Goals over Time</div>
       <div class="item" id="graph-wot">Wins over Time</div>
@@ -96,6 +97,7 @@
   <script src="/js/graphs/wot.js"></script>
   <script src="/js/graphs/got.js"></script>
   <script src="/js/graphs/g.js"></script>
+  <script src="/js/graphs/game.js"></script>
   <script src="/js/graph.js"></script>
   <script>
     $(document).on('ready', function() { 

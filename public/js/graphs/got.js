@@ -5,7 +5,7 @@ function GoalsOverTimeGraph(config)
   var canvasHeight = config.height - margin.top - margin.bottom; 
   var width = config.width - margin.left - margin.right;
   // Track the currently displayed data (for updateWidth() calls)
-  var current = 0; 
+  var current = {}; 
 
   // D3 related objects for Axes
   var xScale = d3.scaleTime().domain([new Date(), undefined]).range([0, width]);
@@ -130,6 +130,7 @@ function GoalsOverTimeGraph(config)
     // Transform games array into players array
     // TODO  Or on the server API?
     var playersData = getPlayersData(gamesData);
+    console.log(playersData);
 
     // Adjust our scales
     var yMax = d3.max(playersData.entries(), function(d) { return d.value[d.value.length - 1].goals; });
