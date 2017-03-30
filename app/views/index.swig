@@ -32,7 +32,7 @@
       <thead>
         <tr>
           <th class="single line">Player</th>
-          <th class="game">Goals For</th>
+          <th class="game">Goals</th>
           <th class="game record">Record</th>
           <th class="game record-fw">Wins</th>
           <th class="game record-fw">Losses</th>
