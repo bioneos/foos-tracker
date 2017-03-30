@@ -130,7 +130,6 @@ function GoalsOverTimeGraph(config)
     // Transform games array into players array
     // TODO  Or on the server API?
     var playersData = getPlayersData(gamesData);
-    console.log(playersData);
 
     // Adjust our scales
     var yMax = d3.max(playersData.entries(), function(d) { return d.value[d.value.length - 1].goals; });
