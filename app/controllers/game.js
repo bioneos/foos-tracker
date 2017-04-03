@@ -93,53 +93,6 @@ gamesRouter.get('/all', function (req, res, next) {
   });
 });
 
-// See the list of the games for the last week (for the homepage)
-gamesRouter.get('/last-week', function (req, res, next) {
-  // Calculate midnight of the current day
-  var midnight = new Date();
-  midnight.setHours(0, 0, 0, 0);
-  midnight.setDate(midnight.getDate() - 7);
-  var ret = {games: []};
-  db.Game.findAll({ 
-      where: {when: {$gte: midnight}}, 
-      include: [db.Player, db.Goal],
-      order: [['when', 'DESC']]
-    }).then(function (games) {
-    
-    // For the week, actually return player goals
-    // NOTE: To aid in the D3 viz, we ensure that all games have the
-    //   same list of players, in the same order. So start by building
-    //   the information for the players list for this week.
-    var playerList = getStaticPlayerList(games);
-
-    // Now build the information for the games themselves:
-    var details = {};
-    games.forEach(function(game) {
-      details = {id: game.id, when: game.when};
-      details.players = [];
-      // Instantiate the player list in the same order with the same values
-      playerList.forEach(function(player) {
-        details.players.push({id: player.id, name: player.name, email: player.email, goals: 0});
-      });
-      game.Players.forEach(function(player){
-        // Count this user's goals
-        var goalCount = 0;
-        game.Goals.forEach(function(goal) {
-          if (goal.PlayerId == player.id) goalCount++;
-        });
-
-        // Update the goals for this player (others remain at 0)
-        details.players.forEach(function(inner) {
-          if (player.id == inner.id) inner.goals = goalCount;
-        });
-      });
-      ret.games.push(details);
-    });
-
-    res.json(ret);
-  });
-});
-
 // Details for a single game
 gamesRouter.get('/:id', function (req, res, next) {
   // Return value
