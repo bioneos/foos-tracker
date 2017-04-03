@@ -4,27 +4,6 @@ var express = require('express'),
   Sequelize = require('sequelize'),
   db = require('../models');
 
-/** Helper methods **/
-/**
- * Get a static list of unique Players given a list of Games.
- */
-function getStaticPlayerList(games)
-{
-  var list = [];
-  games.forEach(function(game) {
-    if (!game.Players) return;
-    game.Players.forEach(function(player) {
-      var exists = false;
-      list.forEach(function(li) {
-        exists = exists || (li.id == player.id);
-      });
-      if (!exists)
-        list.push({id: player.id, name: player.name, email: player.email});
-    });
-  });
-
-  return list;
-}
 
 /**
  * Expose our configuration function (module-pattern)
