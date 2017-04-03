@@ -91,7 +91,7 @@ function GameGraph(config)
   this.transition = function(gameId) {
     if (!gameId || gameId < 0) return updateData({});
 
-    $.ajax('/history/game/' + gameId, {
+    $.ajax(FoosTracker.stats_game_url_base + gameId, {
       dataType: 'json',
       success: function(data, text, jqxhr) {
         updateData(data);

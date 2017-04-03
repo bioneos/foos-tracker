@@ -4,7 +4,7 @@ var express = require('express'),
   db = require('../models');
 
 module.exports = function (app) {
-  app.use('/history', router);
+  app.use('/stats', router);
 };
 
 
@@ -13,8 +13,8 @@ module.exports = function (app) {
  * Render the history page using our history template.
  */
 router.get('/', function(req, res, next) {
-
-  res.render('history', {title: 'Statistics'});
+  // TODO: leaderboard vs visualize in separate tabs
+  res.render('statistics', {title: 'Statistics'});
 });
 
 
