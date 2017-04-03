@@ -13,11 +13,6 @@
     <a href="/players/create" class="ui button">Add a Player</a>
   </div>
 
-  <div class="ui segment basic" id="last-game">
-    <button class="ui tiny button" onclick="loadLastGame();" title="Last Game">L</button>
-    <button class="ui tiny button" onclick="loadGameDay();" title="Last Game Day">GD</button>
-    <button class="ui tiny button" onclick="loadWeek();" title="Last Week">W</button>
-  </div>
   <div class="ui segment basic" id="leaderboard-wrap">
     <div id="statsDropdown" class="ui floating dropdown labeled icon button">
       <!-- img id="main-logo" class="logo" src="/images/logo.png" -->
@@ -53,9 +48,8 @@
 
 {% block scripts %}
   <script src="/js/main.js"></script>
-  <script src="/js/history.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+  <script src="/js/leaderboard.js"></script>
   <script>
-    $(document).on('ready', function() { initHomePage(); });
+    $(document).on('ready', function() { initLeaderboard(); });
   </script>
 {% endblock %}
