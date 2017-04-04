@@ -90,7 +90,8 @@ router.get('/leaderboard', function(req, res, next) {
 
     // 
     // Now load all games to determine records
-    db.Game.findAll({ 'include' : [ db.Player, db.Goal ]}).then(function (games) {
+    //db.Game.findAll({ 'include' : [ db.Player, db.Goal ], 'where': {createdAt: { gt: 1483309391220}}}).then(function (games) {
+    db.Game.findAll({ 'include' : [ db.Player, db.Goal ] }).then(function (games) {
       games.forEach(function(game) {
         var gpp = util.getGoalsPerPlayerSync(game);
         //console.log("Game %d: ", game.id, gpp);
@@ -104,6 +105,9 @@ router.get('/leaderboard', function(req, res, next) {
           leaderboard[pid].goals += gpp[pid];
         });
       });
+
+      // Short circuit for testing speed...
+      //return res.json(leaderboard);
 
       // Find the game day embarrassments and count them as losses as well.
       db.sequelize.query("SELECT DISTINCT PlayerId, count(distinct strftime('%Y%m%d', createdAt)) as count from GamePlayers where not exists (select * from Goals where GamePlayers.PlayerId = Goals.PlayerId AND strftime('%Y%m%d', GamePlayers.createdAt) = strftime('%Y%m%d', Goals.createdAt)) group by playerId;", { type: db.sequelize.QueryTypes.SELECT})
