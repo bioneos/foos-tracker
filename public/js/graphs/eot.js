@@ -213,13 +213,6 @@ function EmbOverTimeGraph(config)
       .transition().duration(TRANSITION_DURATION)
         .attr("d", function(d) { 
           return getLineAsPoint(d.value.length, 0, canvasHeight);
-          /*
-          //console.log("Exit data: ", d);
-          var line = "M0," + canvasHeight;
-          for (i = 1; i < d.value.length; i++)
-            line += "H0V" + canvasHeight;
-          //console.log(line);
-          return line;*/
         })
       .remove();
     // Exiting Player layer: Nickname text
@@ -268,7 +261,6 @@ function EmbOverTimeGraph(config)
       });
     });
 
-    console.log(playersData);
     return playersData;
   }
 
