@@ -46,6 +46,8 @@ $(document).on('ready', function(ev) {
       newGraph = new GoalsOverTimeGraph({height: 500, width: $('#foos-graph').width()});
     else if (newType == 'graph-wot')
       newGraph = new WinsOverTimeGraph({height: 500, width: $('#foos-graph').width()});
+    else if (newType == 'graph-eot')
+      newGraph = new EmbOverTimeGraph({height: 500, width: $('#foos-graph').width()});
     else
       return console.log('Error! Couldn\'t find a graph type for "' + newType + '"...');
   

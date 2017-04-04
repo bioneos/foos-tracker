@@ -47,7 +47,7 @@
       <div class="item" id="graph-g">Goals</div>
       <div class="item" id="graph-got">Goals over Time</div>
       <div class="item" id="graph-wot">Wins over Time</div>
-      <div class="disabled item" id="graph-eot">Embs over Time</div>
+      <div class="item" id="graph-eot">Embs over Time</div>
       <div class="disabled item" id="graph-gl">Game Length</div>
       <div class="disabled item" id="graph-wogl">Wins over GL</div>
       <div class="disabled item" id="graph-eogl">Embs over GL</div>
@@ -94,6 +94,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.1/d3.js"></script>
   <script src="/js/main.js"></script>
   <script src="/js/graphs/foos.js"></script>
+  <script src="/js/graphs/eot.js"></script>
   <script src="/js/graphs/wot.js"></script>
   <script src="/js/graphs/got.js"></script>
   <script src="/js/graphs/g.js"></script>
