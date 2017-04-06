@@ -50,9 +50,17 @@ function createPlayer(playerOpts)
   $.ajax(playerId ? '/api/player/' + playerId : '/api/player/create', {
     'method' : playerId ? 'PUT' : 'POST',
     'data' : playerOpts,
-    'success' : function() {
-      $('#message').removeClass('error success').addClass('success') ;
-      $('#message').html('The player was successfully created and ready to rock!') ;
+    'success' : function(data) {
+      if (data.error)
+      {
+        $('#message').removeClass('error success').addClass('error') ;
+        $('#message').html(data.error) ;
+      }
+      else
+      {
+        $('#message').removeClass('error success').addClass('success') ;
+        $('#message').html('The player was successfully created and ready to rock!') ;
+      }
     },
     'error' : function(xhr, status, error) {
       $('#message').removeClass('error success').addClass('error') ;
