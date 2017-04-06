@@ -47,7 +47,7 @@ function initPlayerForm()
 function createPlayer(playerOpts)
 {
   var playerId = $('#playerId').val() ;
-  $.ajax(playerId ? '/players/' + playerId : '/players/create', {
+  $.ajax(playerId ? '/api/player/' + playerId : '/api/player/create', {
     'method' : playerId ? 'PUT' : 'POST',
     'data' : playerOpts,
     'success' : function() {

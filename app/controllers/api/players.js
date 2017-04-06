@@ -43,7 +43,7 @@ router.get('/players/stats', function (req, res, next) {
  */
 router.get('/players', function (req, res, next) {
   db.Player.findAll().then(function (players) {
-    res.json(players);
+    res.json({ players: players });
   })
   .catch(function(error) {
     res.json({error: error});
