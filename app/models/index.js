@@ -7,7 +7,8 @@ var fs = require('fs'),
 
 var sequelize = new Sequelize(config.db, {
   logging: (env == 'production') ? false : console.log,
-  storage: config.storage
+  storage: config.storage,
+  benchmark: (env == 'development')
 });
 
 fs.readdirSync(__dirname).filter(function (file) {
