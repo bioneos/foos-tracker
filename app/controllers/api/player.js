@@ -18,6 +18,7 @@ router.get('/player/:id', function (req, res, next) {
     res.json(player || {});
   })
   .catch(function(err) {
+    res.statusCode = 500;
     res.json({ error: err });
   });
 });
@@ -28,6 +29,7 @@ router.put('/player/:id', function (req, res, next) {
   db.Player.find({ where: { id: req.params.id, email: req.body.email }}).then(function (player) {
     if (!player)
     {
+      res.statusCode = 403;
       res.json({error: 'You cannot update an email address, just a name. Create a new user for each email.'});
     }
     else
@@ -52,6 +54,7 @@ router.delete('/player/:id', function (req, res, next) {
   db.Player.find({ where: { id: req.params.id }}).then(function (player) {
     if (!player)
     {
+      res.statusCode = 404;
       res.json({error: 'Player not found with that ID'});
     }
     else
@@ -70,6 +73,7 @@ router.post('/player/create', function (req, res, next) {
   db.Player.find({ where: { email: req.body.email }}).then(function (player) {
     if (player)
     {
+      res.statusCode = 403;
       res.json({ error: 'Email address already used' });
     }
     else

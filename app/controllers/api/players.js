@@ -46,6 +46,7 @@ router.get('/players', function (req, res, next) {
     res.json({ players: players });
   })
   .catch(function(error) {
+    res.statusCode = 500;
     res.json({error: error});
   });
 });
@@ -135,6 +136,7 @@ function getPlayerStats({start = 0, stop = Date.now(), sortBy = 'win%', sortOrde
   })
   .catch(function(err) {
     // Something went wrong...
+    res.statusCode = 500;
     res.json({ error: err });
   });
 }

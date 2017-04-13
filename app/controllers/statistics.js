@@ -17,53 +17,6 @@ router.get('/', function(req, res, next) {
   res.render('statistics', {title: 'Statistics'});
 });
 
-
-/** JSON routes: **/
-/**
- * Get all goal data for a single game.
- */
-router.get('/game/:id/', function(req, res, next) {
-  db.Game.findById(req.params.id, { include: [db.Player, db.Goal]}).then(function(game) {
-    
-    // Error handling
-    if (!game) 
-    {
-      res.statusCode = 404;
-      res.json({'error' : 'No game exists with that id'});
-      return;
-    }
-
-    // Build the game data
-    var details = {};
-    details.id = game.id;
-    details.when = game.when;
-    details.threshold = game.threshold;
-    // Keyed by Player.nick, array list of times scored
-    details.goals = {};
-    details.winner = game.winner;
-    // Setup the pids with goal #0 first
-    game.Players.forEach(function(player) {
-      var nick = player.nick || player.name;
-      if (player.id === details.winner) details.winner = nick;
-      details.goals[nick] = [{num:0, when: game.when}];
-    });
-    // Push the goals
-    game.Goals.forEach(function(goal) {
-      // Get the player nickname
-      var nick = "";
-      game.Players.forEach(function (player) { 
-        if (player.id === goal.PlayerId) nick = player.nick || player.name; 
-      });
-      var count = details.goals[nick].length;
-      details.goals[nick].push({num: count, when: goal.when});
-    });
-
-
-    // Respond
-    res.json(details);
-  });
-}) ;
-
 /**
  * Get all goal data for a date range.
  */
