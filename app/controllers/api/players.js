@@ -64,7 +64,7 @@ function getPlayerStats({start = 0, stop = Date.now(), sortBy = 'win%', sortOrde
   var time0 = Date.now();
   db.Game.findAll({ 
     'include' : [ db.Player, db.Goal ], 
-    'where': {createdAt: { gt: start, lt: stop }}
+    'where': {createdAt: { gt: start, lte: stop }}
   })
   .then(function (games) {
     //console.log('Sequelize.findAll: %dms', (Date.now() - time0));
