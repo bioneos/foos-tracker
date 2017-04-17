@@ -34,28 +34,6 @@ gameRouter.get('/:id/', function(req, res, next) {
 /**
  * JSON routes:
  */
-// Start a rematch (and send back the new gameId)
-gameRouter.post('/:id/rematch', function(req, res, next) {
-  db.Game.create({when: new Date()}).then(function(game) {
-    // Now get player details (id and name) so we can pass them to the template
-    db.Player.findAll({ where: { id : { $in : req.body.players } } }).then(function(dbPlayers) {
-      game.addPlayers(dbPlayers).then(function() {
-        res.json({ rematchId : game.id }) ;
-      })
-    }) ;
-  });
-}) ;
-
-// Abort a game, in case of accidental rematch or new game press
-gameRouter.delete('/:id', function(req, res, next) {
-  db.Game.findById(req.params.id).then(function(game) {
-    db.Goal.destroy({ where: { GameId: game.id }}).then(function() {
-      game.destroy().then(function () {
-        res.json({deleted: true});
-      });
-    }) ;
-  }) ;
-}) ;
 
 // See the list of the game history (most recent first)
 // TODO: pagination eventually?
@@ -69,52 +47,6 @@ gamesRouter.get('/all', function (req, res, next) {
       ret.games.push(details);
     });
     res.json(ret);
-  });
-});
-
-// Details for a single game
-gamesRouter.get('/:id', function (req, res, next) {
-  // Return value
-  var targetGame = {};
-
-  db.Game.find({ where: { id: req.params.id }}).then(function (game) {
-    if (!game) res.json(targetGame);
-    else
-    {
-      targetGame.when = game.when;
-      targetGame.threshold = game.threshold;
-      targetGame.players = {};
-
-      // Get Players Scores
-      game.getPlayers().then(function(players) {
-        // Initialize goals to zero
-        players.forEach(function (player) { 
-          targetGame.players[player.id] = {
-            id: player.id,
-            name: player.name,
-            email: player.email,
-            goals: []
-          };
-        });
-
-        // Now record actual counts
-        game.getGoals().then(function(goals) {
-          goals.forEach(function(goal) {
-            targetGame.players[goal.PlayerId].goals.push(goal.id);
-          });
-
-          // Send back data
-          res.json(targetGame);
-        });
-      });
-    }
-  });
-});
-
-// Create
-gamesRouter.post('/create', function(req, res, next) {
-  db.Game.create({when: new Date()}).then(function(game) {
-    res.json({success: true, id: game.id});
   });
 });
 
