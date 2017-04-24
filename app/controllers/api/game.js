@@ -10,9 +10,78 @@ module.exports = function (app) {
   app.use('/api/', router);
 };
 
-// Actions (goals)
+/**
+ * Define possible error situations.
+ */
+function GameNotFound() {}
+function GameNotInProgress() {}
+function PlayerNotFound() {}
+
+/**
+ * Score a goal for a specific player in a specific game.
+ */
 router.post('/game/:game_id/player/:player_id/goal', function (req, res, next) {
-  res.send('Nothing to see here yet...');
+  var targetGame = null;
+  var targetPlayer = null;
+
+  db.Game.find({ include: [ db.Goal ], where: { id: req.params['game_id'] }})
+  .then(function(game) {
+    if (!game) throw new GameNotFound();
+    else if (game.winner != null) throw new GameNotInProgress();
+
+    targetGame = game;
+    return db.Player.find({ where: {id: req.params['player_id'] }});
+  })
+  .then(function(player) {
+    // TODO: Better yet, only search within players associated with this
+    // game so that outside players cannot "score".
+    if (!player) throw new PlayerNotFound();
+    targetPlayer = player;
+
+    return db.Goal.create({ when: new Date() })
+  })
+  .then(function(goal) {
+    goal.setPlayer(targetPlayer);
+    goal.setGame(targetGame);
+
+    var count = 0;
+    var response = { 
+      success: 'Player ' + targetPlayer.name + ': GOOOOOOOOOAL!', 
+      id: goal.id 
+    };
+    targetGame.Goals.forEach(function(goal) {
+      if (goal.PlayerId == targetPlayer.id) count++;
+    });
+    if (count + 1 >= targetGame.threshold)
+    {
+      targetGame.updateAttributes({ 'winner': targetPlayer.id });
+      response.winner = true;
+    }
+
+    res.json(response);
+  })
+  .catch(function(err) {
+    if (err instanceof GameNotFound)
+    {
+      res.statusCode = 404;
+      res.json({ error: 'Cannot find that game'});
+    }
+    else if (err instanceof PlayerNotFound)
+    {
+      res.statusCode = 404;
+      res.json({ error: 'Cannot find that player'});
+    }
+    else if (err instanceof GameNotInProgress)
+    {
+      res.statusCode = 401;
+      res.json({ error: 'That game is no longer in progress' });
+    }
+    else
+    {
+      res.statusCode = 500;
+      res.json({ error: 'Unknown internal error: ' + err });
+    }
+  });
 });
 
 // Player management
