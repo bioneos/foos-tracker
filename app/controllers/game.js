@@ -90,22 +90,3 @@ gamesRouter.post('/:id/remove/player/:pid', function(req, res, next) {
 });
 
 
-// Undo a goal (delete)
-gamesRouter.delete('/:id/goal/:gid', function(req, res, next) {
-  console.log('Undoing accidental goal button press...');
-  db.Game.find({ where: { id: req.params.id }}).then(function (game) {
-    if (!game) res.json({error: 'Invalid Game ID'});
-    else
-    {
-      db.Goal.find({ where: { id: req.params.gid }}).then(function(goal) {
-        if (!goal) res.json({error: 'Invalid Goal ID'});
-        else
-        {
-          goal.destroy().then(function() {
-            res.json({success: 'Goal undone'});
-          });
-        }
-      });
-    }
-  });
-});

@@ -13,9 +13,13 @@ module.exports = function (app) {
 /**
  * Define possible error situations.
  */
+const MAX_UNDO_TIME = 1000 * 60 * 2;
+function ActivePlayer() {}
 function GameNotFound() {}
 function GameNotInProgress() {}
 function PlayerNotFound() {}
+function NoGoals() {}
+function ExceedUndoTimeLimit() {}
 
 /**
  * Score a goal for a specific player in a specific game.
@@ -73,7 +77,7 @@ router.post('/game/:game_id/player/:player_id/goal', function (req, res, next) {
     }
     else if (err instanceof GameNotInProgress)
     {
-      res.statusCode = 401;
+      res.statusCode = 409;
       res.json({ error: 'That game is no longer in progress' });
     }
     else
@@ -93,9 +97,63 @@ router.delete('/game/:game_id/player/:player_id', function (req, res, next) {
 });
 
 // Game management
+/**
+ * Undo the last goal scored in a Game. 
+ */
+router.post('/game/:game_id/undo', function (req, res, next) {
+  db.Game.find({ include: [ db.Goal ], where: { id: req.params['game_id'] }})
+  .then(function(game) {
+    if (!game) throw new GameNotFound();
 
-router.put('/game/:game_id/undo', function (req, res, next) {
-  res.send('Nothing to see here yet...');
+    // Find the newest Goal
+    var targetGoal = null;
+    game.Goals.forEach(function(goal) {
+      if (targetGoal === null) 
+        targetGoal = goal;
+      else if (goal.createdAt.getTime() > targetGoal.createdAt.getTime()) 
+        targetGoal = goal;
+    });
+
+    if (targetGoal === null) 
+    {
+      throw new NoGoals();
+    }
+    else if (Date.now() - targetGoal.createdAt.getTime() > MAX_UNDO_TIME)
+    {
+      throw new ExceedUndoTimeLimit();
+    }
+    else 
+    {
+      if (game.winner != null)
+      {
+        // NOTE: Async update the game (this Promise isn't part of our chain)
+        game.winner = null;
+        game.save();
+      }
+
+      return targetGoal.destroy();
+    }
+  })
+  .then(function() {
+    res.json({ success: 'Last goal undone for GameID: ' + req.params['game_id'] });
+  })
+  .catch(function(err) {
+    if (err instanceof NoGoals)
+    {
+      res.statusCode = 409;
+      res.json({ error: 'No goals exist on that game, GameID: ' + req.params['game_id'] });
+    }
+    else if (err instanceof ExceedUndoTimeLimit)
+    {
+      res.statusCode = 409;
+      res.json({ error: 'Undo time limit exceeded, cannot undo last goal on GameID: ' + req.params['game_id'] });
+    }
+    else
+    {
+      res.statusCode = 500;
+      res.json({ error: err });
+    }
+  });
 });
 
 /**
@@ -105,6 +163,7 @@ router.post('/game/:game_id/rematch', function (req, res, next) {
   db.Game.create({when: new Date()})
   .then(function(newGame) {
     // Now get player details (id and name) so we can pass them to the template
+    // TODO: flatten
     db.Game.findById(req.params['game_id'], { include: [ db.Player ] })
     .then(function(game) {
       return newGame.addPlayers(game.Players)
@@ -167,21 +226,27 @@ router.delete('/game/:game_id', function (req, res, next) {
   db.Game.findById(req.params['game_id'], { include: [ db.Goal ]})
   .then(function(game) {
     if (game.Goals.length > 0)
-      throw new Error('You cannot delete a Game in which Players have already scored a Goal');
+      throw new ActivePlayer();
 
     // Remove all Players first
-    var deferred = game.setPlayers([])
-      .then(function() {
-        console.log("HELLO ", game);
-        return game.destroy();
-      });
-    return deferred;
+    return game.setPlayers([]);
+  })
+  .then(function() {
+    return game.destroy();
   })
   .then(function() {
     res.json({deleted: true});
   })
   .catch(function(err) {
-    res.statusCode = 500;
-    res.json({ error: err.message });
+    if (err instanceof ActivePlayer)
+    {
+      res.statusCode = 409;
+      res.json({ error: 'You cannot delete a Game in which Players have already scored a Goal'});
+    }
+    else
+    {
+      res.statusCode = 500;
+      res.json({ error: err.message });
+    }
   });
 });
