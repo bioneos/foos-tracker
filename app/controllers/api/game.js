@@ -19,6 +19,7 @@ function GameNotFound() {}
 function GameInProgress() {}
 function GameNotInProgress() {}
 function PlayerNotFound() {}
+function PlayerNotInGame() {}
 function PlayerAlreadyAdded() {}
 function NoGoals() {}
 function ExceedUndoTimeLimit() {}
@@ -98,6 +99,19 @@ router.post('/game/:game_id/player/:player_id/goal', function (req, res, next) {
  * Add a player to a game that is not in progress.
  */
 router.post('/game/:game_id/player/:player_id/add', function (req, res, next) {
+  playerManagement('add', req, res);
+});
+/**
+ * Delete an existing player from a game.
+ */
+router.delete('/game/:game_id/player/:player_id', function (req, res, next) {
+  playerManagement('remove', req, res);
+});
+/**
+ * Helper method for removal/addition of players.
+ */
+function playerManagement(type, req, res)
+{
   var targetGame = null;
   var targetPlayer = null;
   db.Game.find({ 
@@ -108,11 +122,16 @@ router.post('/game/:game_id/player/:player_id/add', function (req, res, next) {
     if (!game) throw new GameNotFound();
     if (game.Goals.length > 0) throw new GameInProgress();
 
-    // Ensure player isn't already a part of the game
+    // Search existing players for a match
     game.Players.forEach(function(currentPlayer) {
       if (req.params['player_id'] == currentPlayer.id)
-        throw new PlayerAlreadyAdded();
+        targetPlayer = currentPlayer;
     });
+    
+    if (type == 'add' && targetPlayer != null)
+      throw new PlayerAlreadyAdded();
+    else if (type == 'remove' && targetPlayer == null)
+      throw new PlayerNotInGame();
 
     targetGame = game;
     return db.Player.find({ where: { id: req.params['player_id'] }});
@@ -120,11 +139,23 @@ router.post('/game/:game_id/player/:player_id/add', function (req, res, next) {
   .then(function(player) {
     if (!player) throw new PlayerNotFound();
 
-    targetPlayer = player;
-    return targetGame.addPlayer(player);
+    if (type == 'add')
+    {
+      targetPlayer = player;
+      return targetGame.addPlayer(player);
+    }
+    else if (type == 'remove')
+    {
+      return targetGame.removePlayer(targetPlayer);
+    }
   })
   .then(function() {
-    res.json({ success: 'Player ' + targetPlayer.name + ' added to game, GameID: ' + targetGame.id });
+    if (type == 'add')
+      res.json({ success: 'Player ' + targetPlayer.name + ' added to game, GameID: ' + targetGame.id });
+    else if (type == 'remove')
+      res.json({ success: 'Player ' + targetPlayer.name + ' removed from game, GameID: ' + targetGame.id });
+
+    throw new Error('Unknown player management action');
   })
   .catch(function(err) {
     if (err instanceof GameNotFound)
@@ -137,10 +168,15 @@ router.post('/game/:game_id/player/:player_id/add', function (req, res, next) {
       res.statusCode = 409;
       res.json({ error: 'That player is already part of the game, GameID: ' + req.params['game_id'] + ', PlayerID: ' + req.params['player_id'] });
     }
+    else if (err instanceof PlayerNotInGame)
+    {
+      res.statusCode = 409;
+      res.json({ error: 'That player is not in this game, GameID: ' + req.params['game_id'] + ', PlayerID: ' + req.params['player_id'] });
+    }
     else if (err instanceof GameInProgress)
     {
       res.statusCode = 409;
-      res.json({ error: 'Cannot add players after goals have been scored, GameID: ' + req.params['game_id'] });
+      res.json({ error: 'Cannot change players after goals have been scored, GameID: ' + req.params['game_id'] });
     }
     else if (err instanceof PlayerNotFound)
     {
@@ -153,13 +189,7 @@ router.post('/game/:game_id/player/:player_id/add', function (req, res, next) {
       res.json({ error: err.message });
     }
   });
-});
-/**
- * Delete an existing player from a game.
- */
-router.delete('/game/:game_id/player/:player_id', function (req, res, next) {
-  res.send('Nothing to see here yet...');
-});
+}
 
 // Game management
 /**
