@@ -47,7 +47,7 @@
 {% endblock %}
 
 {% block scripts %}
-  <script src="/js/main.js"></script>
+  <script src="/js/home.js"></script>
   <script src="/js/leaderboard.js"></script>
   <script>
     $(document).on('ready', function() { initLeaderboard(); });
