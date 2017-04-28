@@ -1,16 +1,29 @@
+var FoosTracker = FoosTracker || {};
+
 /**
  * Initialize the leaderboard table of data, and setup the menu buttons.
  */
 function initLeaderboard()
 {
+  FoosTracker.leaderboard = {};
+  var lb = FoosTracker.leaderboard;
+  
   // Setup the menu buttons
+  var now = new Date();
+  lb.month = new Date(now.getFullYear(), now.getMonth(), 1);
+  lb.week = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  lb.week.setHours(-24 * (lb.week.getDay() > 0 ? (lb.week.getDay() - 1) : 6));
+  // Make API route to get details of last game played (/game/last)
+  lb.gameday = 'TODO'; 
+  lb.game = 'TODO';
   // TODO
+  $('#leaderboard-month').on('click', selectMonth);
+  $('#leaderboard-week').on('click', selectWeek);
+  $('#leaderboard-gameday').on('click', selectGameDay);
+  $('#leaderboard-game').on('click', selectGame);
 
   // Setup our leaderboard with default display of "Current Month"
-  var now = new Date();
-  var month = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  loadLeaderboard(month.getTime())
+  loadLeaderboard(lb.month.getTime())
 }
 
 /**
@@ -45,6 +58,7 @@ function loadLeaderboard(time)
     {
       var lb = $('#leaderboard tbody') ;
       if (!lb) return ;
+      lb.empty();
 
       data.stats.forEach(function(player) {
         var rowClass = (player.retired) ? 'disabled' : '' ;
@@ -89,4 +103,44 @@ function loadLeaderboard(time)
       }) ;
     }
   }) ;
+}
+
+/**
+ * Helper to select the Month menu item.
+ */
+function selectMonth()
+{
+  $('#leaderboard-actions a.item').removeClass('active');
+  $('#leaderboard-month').addClass('active');
+  loadLeaderboard(FoosTracker.leaderboard.month.getTime());
+}
+
+/**
+ * Helper to select the Week menu item.
+ */
+function selectWeek()
+{
+  $('#leaderboard-actions a.item').removeClass('active');
+  $('#leaderboard-week').addClass('active');
+  loadLeaderboard(FoosTracker.leaderboard.week.getTime());
+}
+
+/**
+ * Helper to select the GameDay menu item.
+ */
+function selectGameDay()
+{
+  $('#leaderboard-actions a.item').removeClass('active');
+  $('#leaderboard-gameday').addClass('active');
+  loadLeaderboard(FoosTracker.leaderboard.gameday.getTime());
+}
+
+/**
+ * Helper to select the Game menu item.
+ */
+function selectGame()
+{
+  $('#leaderboard-actions a.item').removeClass('active');
+  $('#leaderboard-game').addClass('active');
+  loadLeaderboard(FoosTracker.leaderboard.game.getTime());
 }
