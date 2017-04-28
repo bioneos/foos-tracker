@@ -20,12 +20,12 @@
       <a id="leaderboard-gameday" class="item">Game Day</a>
       <a id="leaderboard-game" class="item">Game</a>
       <div class="right item">
-        <div id="statsDropdown" class="ui floating dropdown labeled icon button">
-          <i class="bar chart icon"></i>
-          <span class="text">Stats</span>
-          <div class="menu">
-            <div class="item" data-value="game">Game</div>
-            <div class="item" data-value="game-day">Game Day (GD)</div>
+        <div class="ui mini icon buttons">
+          <div id="stats-btn-std" class="ui labeled icon button">
+            <i class="bar chart icon"></i> Std
+          </div>
+          <div id="stats-btn-gd" class="ui right labeled icon button">
+            GD <i class="calendar outline icon"></i>
           </div>
         </div>
       </div>

@@ -23,10 +23,13 @@ function initLeaderboard()
   $('#leaderboard-game').on('click', selectGame);
 
   // Setup the stat grouping dropdown
-  $('#statsDropdown').dropdown({
-    onChange: function(value, text, $selectedItem) {
-      $('table .gd, table .game').toggleClass('hidden');
-    }
+  $('#stats-btn-std').on('click', function() {
+    $('table .gd').addClass('hidden');
+    $('table .game').removeClass('hidden');
+  });
+  $('#stats-btn-gd').on('click', function() {
+    $('table .game').addClass('hidden');
+    $('table .gd').removeClass('hidden');
   });
 
   // Setup our leaderboard with default display of "Current Month"
