@@ -46,11 +46,13 @@ function loadLeaderboard(time)
     $('table .gd').addClass('hidden');
     $('table .game').removeClass('hidden');
 
+    // Reset the table
+    var lb = $('#leaderboard tbody') ;
+    lb.empty();
+    
+    // Results
     if (data.stats)
     {
-      var lb = $('#leaderboard tbody') ;
-      if (!lb) return ;
-      lb.empty();
 
       data.stats.forEach(function(player) {
         var rowClass = (player.retired) ? 'disabled' : '' ;
@@ -93,6 +95,10 @@ function loadLeaderboard(time)
 
         lb.append('<tr class="' + rowClass + '">' + name + gf + record + wins + losses + embs + winpStr + gdRecord + gdWins + gdLosses + gdTies + gdEmbs + gdWinpStr + '</tr>') ;
       }) ;
+    }
+    else
+    {
+      lb.append('<td colspan="6">Apparently no one has been playing lately!</td>');
     }
   }) ;
 }
