@@ -1,3 +1,8 @@
+// TODO: The globally defined "game" variable is very fragile, and
+//   lacking other important game details. We need to switch to a
+//   more robust way of doing this.
+var game = {};
+
 /**
  * Fill up the players-list with the current players of this game, 
  * and add their GOAL buttons, then add the remaining players to the
@@ -8,12 +13,13 @@
  */
 function initGamePage()
 {
-  $.get('/players/all/', {}, function(data, text, xhr) {
-    var allPlayers = data.players;
-    $.get('/games/' + gameId, {}, function(data, text, xhr) {
+  $.get('/api/players/', {}, function(playerData, text, xhr) {
+    var allPlayers = playerData.players;
+    $.get('/api/game/' + gameId, {}, function(gameData, text, xhr) {
       // Player info
       allPlayers.forEach(function(player) {
-        if (data.players[player.id])
+        var match = gameData.Players.find(function(p) { return (p.id === player.id); });
+        if (match)
           addActivePlayer(player);
         else
           addAvailablePlayer(player);
@@ -34,10 +40,9 @@ function initGamePage()
  */
 function addActivePlayer(player)
 {
-  var button = '<a href="#" onclick="removeActivePlayer(' + player.id + ')"><i class="fa fa-lg fa-remove"></i></a>' ;
-  button += '<button class="ui button" onclick="score(' + player.id + ');">Goal!</button>' ;
-  button += '<a href="#" onclick="undoGoal(' + player.id + ', event)"><i class="fa fa-lg fa-undo"></i></a>';
-  $('#players-list').append('<li class="ui column" id="player-list-' + player.id + '"><p>' + player.name + '</p>' + button + '</li>');
+  var removeButton = ' <a href="#" onclick="removeActivePlayer(' + player.id + ')"><i class="fa fa-lg fa-remove"></i></a> ' ;
+  var goalButton = '<button class="ui button" onclick="score(' + player.id + ');">Goal!</button>' ;
+  $('#players-list').append('<li class="ui column" id="player-list-' + player.id + '"><p>' + player.name + removeButton + '</p>' + goalButton + '</li>');
 
   // Add player to the Scoreboard
   $('#scoreboard').append('<div class="ui column" id="player-score-' + player.id + '">' + 
@@ -50,15 +55,22 @@ function addActivePlayer(player)
 
 function removeActivePlayer(playerId)
 {
-  if (gameInProgress) return false ;
-
   // Get our player name from the DOM
   var name = $('#player-list-' + playerId + ' p').text() ;
-
-  // Remove the player from the UI and add them back to the player list
-  $('#player-list-' + playerId).remove() ;
-  $('#player-score-' + playerId).remove() ;
-  addAvailablePlayer({ 'id' : playerId,  'name' : name }) ;
+  $.ajax({
+    'url' : '/api/game/' + gameId + '/player/' + playerId,
+    'method' : 'DELETE',
+    'success' : function() {
+      // Remove the player from the UI and add them back to the player list
+      $('#player-list-' + playerId).remove() ;
+      $('#player-score-' + playerId).remove() ;
+      addAvailablePlayer({ 'id' : playerId,  'name' : name }) ;
+    },
+    'error' : function(jqXHR, text, err) {
+      // TODO: improve this
+      alert('Could not remove that player: ' + jqXHR.responseJSON.error);
+    }
+  }) ;
 }
 
 /**
@@ -78,8 +90,8 @@ function joinGame()
   var pid = $('#players .controls select').val();
   if (pid <= 0) return;
 
-  $.get('/players/' + pid, {}, function(player, text, xhr) {
-    $.post('/games/' + gameId + '/add/player/' + pid, {}, function(data, text, xhr) {
+  $.get('/api/player/' + pid, {}, function(player, text, xhr) {
+    $.post('/api/game/' + gameId + '/player/' + pid + '/add', {}, function(data, text, xhr) {
       addActivePlayer(player);
       // Success! Remove from available list
       $('#player-available-' + pid).remove();
@@ -92,10 +104,8 @@ function joinGame()
  */
 function score(pid)
 {
-  // When a goal is scored, the game is officially in progress
-  gameInProgress = true ;
-
-  $.post('/games/' + gameId + '/goal/player/' + pid, {}, function(data, text, xhr) {
+  var url = '/api/game/' + gameId + '/player/' + pid + '/goal';
+  $.post(url, {}, function(data, text, xhr) {
     // Update Scoreboard
     game[pid].push(data.id);
     $('#player-score-' + pid).children('h2').replaceWith('<h2>' + game[pid].length + '</h2>');
@@ -106,26 +116,18 @@ function score(pid)
 }
 
 /**
- * Remove an errant goal
+ * Undo the last Goal button press.
  */
-function undoGoal(pid, e)
+function undoGoal()
 {
-  e.preventDefault() ;
-
-  if (!game[pid] || game[pid].length === 0) return ;
-
-  var lastGoal = game[pid].pop() ;
   $.ajax({
-    'url' : '/games/' + gameId + '/goal/' + lastGoal,
-    'method' : 'DELETE',
-    'success' : function() {
-      // Our goal has already been removed from the stack, update our UI
-      $('#player-score-' + pid).children('h2').replaceWith('<h2>' + game[pid].length + '</h2>');
+    'url' : '/api/game/' + gameId + '/undo',
+    'method' : 'POST',
+    'success' : function(data) {
+      // Ensure we are on the same page as the server
+      refreshGameInfo();
     },
     'error' : function() {
-      // Dont update our UI and put the failed goal back on the stack
-      game[pid].push(lastGoal) ;
-
       // TODO: Should have a user warning here of the failure to remove the goal
     }
   }) ;
@@ -136,27 +138,27 @@ function undoGoal(pid, e)
  */
 function refreshGameInfo()
 {
-  $.get('/games/' + gameId, {}, function(data, text, xhr) {
+  // Reseting all local data:
+  game = {};
+
+  $.get('/api/game/' + gameId, {}, function(data, text, xhr) {
+    var winnerId = data.winner;
     var winner = null;
-    for (var pid in data.players)
-    {
-      // Check for a winner
-      if (data.players[pid].goals.length >= data.threshold)
-      {
-        // Just in case threshold was set wrong
-        if (!winner || data.players[pid].goals.length > winner.goals)
-          winner = data.players[pid];
-      }
+    
+    // Sum all goals
+    data.Goals.forEach(function(goal) {
+      game[goal.PlayerId] = game[goal.PlayerId] || [];
+      game[goal.PlayerId].push(goal.id);
+    });
 
-      // Update player score
-      if (data.players[pid].goals.length > 0)
-      {
-        gameInProgress = true ;
-      }
+    // Update player scores
+    data.Players.forEach(function(player) {
+      game[player.id] = game[player.id] || [];
+      $('#player-score-' + player.id).children('h2').replaceWith('<h2>' + game[player.id].length + '</h2>');
 
-      game[pid] = data.players[pid].goals;
-      $('#player-score-' + pid).children('h2').replaceWith('<h2>' + game[pid].length + '</h2>');
-    } 
+      if (winnerId === player.id)
+        winner = player;
+    });
 
     // Close the game out
     if (winner) showWinner(winner);
@@ -175,7 +177,7 @@ function showWinner(winner)
   $('#players .controls button').prop("disabled", true);
 
   // New game button
-  $('#winner').append('<button class="ui massive button" onclick="newGame();">Play a new Game</button>');
+  $('#winner').append('<button class="ui massive button" onclick="newGame();">New Game</button>');
   $('#winner').append('<button class="ui massive button" onclick="rematch();">Rematch</button>');
   $('#winner').fadeIn();
 }
@@ -186,17 +188,16 @@ function showWinner(winner)
 function rematch()
 {
   // Make a call to start a new game, that call will automatically redirect us
-  $.post('/game/' + gameId + '/rematch', { 'players' : Object.keys(game) }, function(data, status, xhr) {
+  $.post('/api/game/' + gameId + '/rematch', {}, function(data, status, xhr) {
     window.location = '/game/' + data.rematchId;
   }) ;
 }
 
-function abortGame(event)
+function abortGame()
 {
-  event.stopPropagation() ;
-
+  // TODO: what to do on error?
   $.ajax({
-    'url' : '/game/' + gameId,
+    'url' : '/api/game/' + gameId,
     'method' : 'DELETE',
     'success' : function() {
       window.location = '/' ;

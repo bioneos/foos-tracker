@@ -1,7 +1,7 @@
 function GoalsGraph(config)
 {
   // Private variables
-  const margin = { top: 15, right: 15, bottom: 15, left: 15 };
+  const margin = { top: 15, right: 90, bottom: 15, left: 15 };
   const padding = 10;
   var canvasHeight = config.height - margin.top - margin.bottom; 
   var width = config.width - margin.left - margin.right;
@@ -11,8 +11,7 @@ function GoalsGraph(config)
   // Radius measurement
   var radius = Math.min(width, canvasHeight) / 2;
   // D3 Graph render functions (arc / pie)
-  var arc = d3.arc().outerRadius(radius - 10).innerRadius(0);
-  var textarc = d3.arc().outerRadius(radius - 10).innerRadius((radius - 10) / 3);
+  var arc = d3.arc().outerRadius(radius).innerRadius(0);
   var pie = d3.pie()
     .value(function(d) { return d.value; });
 
@@ -29,7 +28,6 @@ function GoalsGraph(config)
     width = newWidth - margin.left - margin.right;
     radius = Math.min(width, canvasHeight) / 2;
     arc = d3.arc().outerRadius(radius - 10).innerRadius(0);
-    textarc = d3.arc().outerRadius(radius - 10).innerRadius((radius - 10) / 3);
     // Maybe update height too?
     
     // Update transform on graph canvas
@@ -45,19 +43,25 @@ function GoalsGraph(config)
 
     // Arc:
     player.select(".arc")
-      .datum(function(d) { return d; })
       .attr("d", arc);
 
     // Nick:
+    var playerCol = radius + 60;
     player.select(".nick")
-      .datum(function(d) { return d; })
-      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .attr("transform", function(d, i) {
+        return "translate(" + playerCol + "," + ((-1 * canvasHeight / 2) + (30 * (d.index + 1))) + ")";
+      })
       .text(function(d) { return d.data.key; });
     // Goals:
     player.select(".goals")
-      .datum(function(d) { return d; })
-      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .attr("transform", function(d, i) {
+        return "translate(" + playerCol + "," + ((-1 * canvasHeight / 2) + (30 * (d.index + 1))) + ")";
+      })
       .text(function(d) { return d.data.value; });
+    player.select(".legend")
+      .attr("transform", function(d, i) {
+        return "translate(" + (playerCol + 5) + "," + ((-1 * canvasHeight / 2) + (30 * (d.index + 1))) + ")";
+      });
   };
 
   /**
@@ -84,7 +88,7 @@ function GoalsGraph(config)
     if (!start) start = 0;
     if (!stop) stop = new Date().getTime();
 
-    $.ajax('/history/games/' + start + "/" + stop, {
+    $.ajax(FoosTracker.stats_url_base + start + "/" + stop, {
       dataType: 'json',
       success: function(data, text, jqxhr) {
         updateData(data);
@@ -139,6 +143,9 @@ function GoalsGraph(config)
     var player = svg.selectAll(".player")
       .data(pie(playersData.entries()), function(d) { return d.data.key; });
     
+    // Helper location
+    var playerCol = radius + 60;
+
     //
     // Update list
     //   This is any Player layer that already existed before we applied
@@ -147,15 +154,21 @@ function GoalsGraph(config)
     .transition().duration(TRANSITION_DURATION)
       .attrTween('d', arcTween)
     player.select(".nick")
-      .datum(function(d) { return d; })
     .transition().duration(TRANSITION_DURATION)
-      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .attr("transform", function(d, i) { 
+        return "translate(" + playerCol + "," + ((-1 * canvasHeight / 2) + (30 * (d.index + 1))) + ")";
+      })
       .text(function(d) { return d.data.key; });
     player.select(".goals")
-      .datum(function(d) { return d; })
     .transition().duration(TRANSITION_DURATION)
-      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .attr("transform", function(d, i) {
+        return "translate(" + playerCol + "," + ((-1 * canvasHeight / 2) + (30 * (d.index + 1))) + ")";
+      })
       .text(function(d) { return d.data.value; });
+    player.select(".legend")
+      .attr("transform", function(d, i) { 
+        return "translate(" + (playerCol + 5) + "," + ((-1 * canvasHeight / 2) + (30 * (d.index + 1))) + ")"; 
+      })
 
 
     //
@@ -171,30 +184,46 @@ function GoalsGraph(config)
       // Start each entering arc at a start/end angle of 0*
       .each(function(d) { this._current = {startAngle:0, endAngle: 0}; })
     .transition().duration(TRANSITION_DURATION)
-      .attrTween('d', arcTween)
+      .attrTween('d', arcTween);
     // Entering Player layer: Nickname text
     enter.append("text")
-      .datum(function(d) { return d; })
       .attr("class", "nick")
       .style("fill", "#222")
       .style("font-weight", "bold")
       .style("stroke-width", 0)
-      .style("text-anchor", "middle")
-      .attr("transform", "translate(0,0)")
+      .style("text-anchor", "end")
+      .attr("transform", "translate(" + playerCol +"," + (-1 * canvasHeight / 2) + ")")
     .transition().duration(TRANSITION_DURATION)
-      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .attr("transform", function(d, i) {
+        return "translate(" + playerCol + "," + ((-1 * canvasHeight / 2) + (30 * (d.index + 1))) + ")";
+      })
       .text(function(d) { return d.data.key; });
     enter.append("text")
-      .datum(function(d) { return d; })
       .attr("dy", "1.1em")
       .attr("class", "goals")
       .style("fill", "#222")
       .style("font-weight", "bold")
       .style("stroke-width", 0)
-      .style("text-anchor", "middle")
-      .attr("transform", "translate(0,0)")
+      .style("text-anchor", "end")
+      .attr("transform", "translate(" + playerCol + "," + (-1 * canvasHeight / 2) + ")")
     .transition().duration(TRANSITION_DURATION)
-      .attr("transform", function(d) { return "translate(" + textarc.centroid(d) + ")"; })
+      .attr("transform", function(d, i) { 
+        return "translate(" + playerCol + "," + ((-1 * canvasHeight / 2) + (30 * (d.index + 1))) + ")"; 
+      })
+      .text(function(d) { return d.data.value; });
+    enter.append("rect")
+      .attr("class", "legend")
+      .style("fill", function(d) { return FoosTracker.palette(d.data.key); })
+      .attr("y", "-8")
+      .attr("width", 0)
+      .attr("height", 0)
+      .attr("transform", "translate(" + (playerCol + 5) + "," + (-1 * canvasHeight / 2) + ")")
+    .transition().duration(TRANSITION_DURATION)
+      .attr("width", 16)
+      .attr("height", 16)
+      .attr("transform", function(d, i) { 
+        return "translate(" + (playerCol + 5) + "," + ((-1 * canvasHeight / 2) + (30 * (d.index + 1))) + ")"; 
+      })
       .text(function(d) { return d.data.value; });
 
     //
@@ -204,19 +233,23 @@ function GoalsGraph(config)
     var exit = player.exit();
     // Transition all arcs to 0 angle
     exit.selectAll(".arc")
-      .datum({ startAngle: 0, endAngle: 0 })
       .transition().duration(TRANSITION_DURATION)
         .attrTween('d', arcTween)
       .remove();
-    exit.selectAll(".nick")
     // Exiting Player layer: Nickname text
     exit.selectAll(".nick")
       .transition().duration(TRANSITION_DURATION)
-        .attr("transform", "translate(0, 0)")
+        .attr("transform", "translate(" + playerCol + ", " + (-1 * canvasHeight / 2) + ")")
       .remove();
     exit.selectAll(".goals")
       .transition().duration(TRANSITION_DURATION)
-        .attr("transform", "translate(0, 0)")
+        .attr("transform", "translate(" + playerCol + ", " + (-1 * canvasHeight / 2) + ")")
+      .remove();
+    exit.selectAll(".legend")
+      .transition().duration(TRANSITION_DURATION)
+        .attr('transform', 'translate(' + (playerCol + 5) + ', ' + (-1 * canvasHeight / 2) + ')')
+        .attr('width', 0)
+        .attr('height', 0)
       .remove();
     // At the end of the transition, remove the player layer entirely
     exit.transition().duration(TRANSITION_DURATION).remove();
@@ -248,6 +281,7 @@ function GoalsGraph(config)
    *   {
    *     'Player Nick': <num_goals>
    *   }
+   * TODO: needs to be sorted to support order list of players
    */
   function getPlayersData(gamesData)
   {

@@ -3,7 +3,7 @@
  */
 function newGame()
 {
-  $.post('/games/create', {}, function(data, text, xhr) {
+  $.post('/api/game/create', {}, function(data, text, xhr) {
     window.location = '/game/' + data.id;
   });
 }
