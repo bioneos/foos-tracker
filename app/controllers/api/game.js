@@ -323,22 +323,35 @@ router.get('/game/:game_id', function (req, res, next) {
  * any number of associated Players.
  */
 router.delete('/game/:game_id', function (req, res, next) {
+  var targetGame = null;
   db.Game.findById(req.params['game_id'], { include: [ db.Goal ]})
   .then(function(game) {
+    if (!game)
+      throw new GameNotFound();
     if (game.Goals.length > 0)
       throw new ActivePlayer();
+
+    targetGame = game;
 
     // Remove all Players first
     return game.setPlayers([]);
   })
   .then(function() {
-    return game.destroy();
+    return targetGame.destroy();
   })
   .then(function() {
-    res.json({deleted: true});
+    res.json({ 
+      success: 'Successfully deleted game, GameID: ' + req.params['game_id'],
+      deleted: true
+    });
   })
   .catch(function(err) {
-    if (err instanceof ActivePlayer)
+    if (err instanceof GameNotFound)
+    {
+      res.statusCode = 404;
+      res.json({ error: 'Cannot find that game, GameID: ' + req.params['game_id']});
+    }
+    else if (err instanceof ActivePlayer)
     {
       res.statusCode = 409;
       res.json({ error: 'You cannot delete a Game in which Players have already scored a Goal'});
