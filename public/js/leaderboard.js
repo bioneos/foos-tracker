@@ -22,6 +22,13 @@ function initLeaderboard()
   $('#leaderboard-gameday').on('click', selectGameDay);
   $('#leaderboard-game').on('click', selectGame);
 
+  // Setup the stat grouping dropdown
+  $('#statsDropdown').dropdown({
+    onChange: function(value, text, $selectedItem) {
+      $('table .gd, table .game').toggleClass('hidden');
+    }
+  });
+
   // Setup our leaderboard with default display of "Current Month"
   loadLeaderboard(lb.month.getTime())
 }
@@ -34,25 +41,10 @@ function initLeaderboard()
 function loadLeaderboard(time)
 {
   $.get('/api/players/stats/' + time, {}, function(data, text, xhr) {
-
-    //$('.ui.dropdown').dropdown();
-    // TODO: might be better to do a new AJAX query? Not performance wise though...
-
-    $('#statsDropdown').dropdown({
-        onChange: function(value, text, $selectedItem) {
-          if (value === 'game')
-          {
-            $('table .gd').addClass('hidden');
-            $('table .game').removeClass('hidden');
-          }
-          else if (value === 'game-day')
-          {
-            $('table .game').addClass('hidden');
-            $('table .gd').removeClass('hidden');
-          }
-        }
-      });
+    // Reset the stats
     $('#statsDropdown').dropdown('set selected', 'game');
+    $('table .gd').addClass('hidden');
+    $('table .game').removeClass('hidden');
 
     if (data.stats)
     {
