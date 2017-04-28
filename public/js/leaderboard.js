@@ -50,10 +50,9 @@ function loadLeaderboard(time)
     var lb = $('#leaderboard tbody') ;
     lb.empty();
     
-    // Results
+    // Process results
     if (data.stats)
     {
-
       data.stats.forEach(function(player) {
         var rowClass = (player.retired) ? 'disabled' : '' ;
         if (player.nick === null) player.nick = '';
@@ -79,16 +78,13 @@ function loadLeaderboard(time)
         }
 
         var gdWinpStr = '<td class="gd hidden">-</td>';
-        if ((player.gameDayWins + player.gameDayLosses) !== 0)
+        if ((player.gameDayWins + player.gameDayLosses + player.gameDayTies) !== 0)
         {
           var playerWins = player.gameDayWins;
           var playerLosses = player.gameDayLosses;
-          /*player.gameDayTiesRec.forEach(function(tieCount) {
-            playerWins += 1/tieCount;
-            playerLosses += (tieCount-1)/tieCount;
-          });*/
+          var playerTies = player.gameDayTies;
 
-          var gdwinp = (playerWins / (playerWins + playerLosses));
+          var gdwinp = (playerWins / (playerWins + playerLosses + playerTies));
           gdwinp = Math.floor(gdwinp * 10000) / 100;
           gdWinpStr = '<td class="gd hidden">' + gdwinp + '%</td>';
         }
