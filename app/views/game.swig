@@ -8,7 +8,6 @@
   var gameId = {{gameId}};
   var game = {};
 </script>
-<script src="/js/main.js"></script>
 <script src="/js/game.js"></script>
 <script>
   $(document).on('ready', function() {
