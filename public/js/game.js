@@ -177,7 +177,7 @@ function showWinner(winner)
   $('#players .controls button').prop("disabled", true);
 
   // New game button
-  $('#winner').append('<button class="ui massive button" onclick="newGame();">Play a new Game</button>');
+  $('#winner').append('<button class="ui massive button" onclick="newGame();">New Game</button>');
   $('#winner').append('<button class="ui massive button" onclick="rematch();">Rematch</button>');
   $('#winner').fadeIn();
 }

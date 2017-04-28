@@ -20,13 +20,19 @@ module.exports = function (app) {
  */
 gameRouter.get('/:id/', function(req, res, next) {
   db.Game.find({ where: { id: req.params.id }}).then(function (game) {
-    // TODO: redirect to index but put the messages in a session (so URL is updated)
-    if (!game) res.render('index', {messages: ["Cannot find that Game!"] });
-    else res.render('game', {
-      title: '!Play Foosball!',
-      gameStart: game.when, 
-      gameThreshold: game.threshold, 
-      gameId: game.id
-    });
+    if (!game) 
+    {
+      // TODO: either session message here, or query string
+      res.redirect('/');
+    }
+    else 
+    {
+      res.render('game', {
+        title: '!Play Foosball!',
+        gameStart: game.when, 
+        gameThreshold: game.threshold, 
+        gameId: game.id
+      });
+    }
   });
 });
