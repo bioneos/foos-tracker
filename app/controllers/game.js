@@ -35,25 +35,6 @@ gameRouter.get('/:id/', function(req, res, next) {
  * JSON routes:
  */
 
-// Add a Player to an existing game
-gamesRouter.post('/:id/add/player/:pid', function(req, res, next) {
-  console.log('Adding a Player to a Game');
-  db.Game.find({ where: { id: req.params.id }}).then(function (game) {
-    if (!game) res.json({error: 'Invalid Game ID'});
-    else
-    {
-      db.Player.find({ where: { id: req.params.pid }}).then(function(player) {
-        if (!player) res.json({error: 'Invalid Player ID'});
-        else
-        {
-          game.addPlayer(player).then(function() {
-            res.json({success: 'Player ' + player.name + ' added to Game ID ' + game.id});
-          });
-        }
-      });
-    }
-  });
-});
 
 // Remove a player from a game (they must not have any goals)
 gamesRouter.post('/:id/remove/player/:pid', function(req, res, next) {

@@ -16,8 +16,10 @@ module.exports = function (app) {
 const MAX_UNDO_TIME = 1000 * 60 * 2;
 function ActivePlayer() {}
 function GameNotFound() {}
+function GameInProgress() {}
 function GameNotInProgress() {}
 function PlayerNotFound() {}
+function PlayerAlreadyAdded() {}
 function NoGoals() {}
 function ExceedUndoTimeLimit() {}
 
@@ -92,9 +94,69 @@ router.post('/game/:game_id/player/:player_id/goal', function (req, res, next) {
 });
 
 // Player management
-router.post('/game/:game_id/player/add', function (req, res, next) {
-  res.send('Nothing to see here yet...');
+/**
+ * Add a player to a game that is not in progress.
+ */
+router.post('/game/:game_id/player/:player_id/add', function (req, res, next) {
+  var targetGame = null;
+  var targetPlayer = null;
+  db.Game.find({ 
+    where: { id: req.params['game_id'] },
+    include: [ db.Goal, db.Player ]
+  })
+  .then(function (game) {
+    if (!game) throw new GameNotFound();
+    if (game.Goals.length > 0) throw new GameInProgress();
+
+    // Ensure player isn't already a part of the game
+    game.Players.forEach(function(currentPlayer) {
+      if (req.params['player_id'] == currentPlayer.id)
+        throw new PlayerAlreadyAdded();
+    });
+
+    targetGame = game;
+    return db.Player.find({ where: { id: req.params['player_id'] }});
+  })
+  .then(function(player) {
+    if (!player) throw new PlayerNotFound();
+
+    targetPlayer = player;
+    return targetGame.addPlayer(player);
+  })
+  .then(function() {
+    res.json({ success: 'Player ' + targetPlayer.name + ' added to game, GameID: ' + targetGame.id });
+  })
+  .catch(function(err) {
+    if (err instanceof GameNotFound)
+    {
+      res.statusCode = 404;
+      res.json({ error: 'Cannot find that game, GameID: ' + req.params['game_id'] });
+    }
+    else if (err instanceof PlayerAlreadyAdded)
+    {
+      res.statusCode = 409;
+      res.json({ error: 'That player is already part of the game, GameID: ' + req.params['game_id'] + ', PlayerID: ' + req.params['player_id'] });
+    }
+    else if (err instanceof GameInProgress)
+    {
+      res.statusCode = 409;
+      res.json({ error: 'Cannot add players after goals have been scored, GameID: ' + req.params['game_id'] });
+    }
+    else if (err instanceof PlayerNotFound)
+    {
+      res.statusCode = 404;
+      res.json({ error: 'Cannot find that player, PlayerID: ' + req.params['player_id'] });
+    }
+    else
+    {
+      res.statusCode = 500;
+      res.json({ error: err.message });
+    }
+  });
 });
+/**
+ * Delete an existing player from a game.
+ */
 router.delete('/game/:game_id/player/:player_id', function (req, res, next) {
   res.send('Nothing to see here yet...');
 });
@@ -141,7 +203,12 @@ router.post('/game/:game_id/undo', function (req, res, next) {
     res.json({ success: 'Last goal undone for GameID: ' + req.params['game_id'] });
   })
   .catch(function(err) {
-    if (err instanceof NoGoals)
+    if (err instanceof GameNotFound)
+    {
+      res.statusCode = 404;
+      res.json({ error: 'Cannot find that game, GameID: ' + req.params['game_id'] });
+    }
+    else if (err instanceof NoGoals)
     {
       res.statusCode = 409;
       res.json({ error: 'No goals exist on that game, GameID: ' + req.params['game_id'] });
@@ -154,7 +221,7 @@ router.post('/game/:game_id/undo', function (req, res, next) {
     else
     {
       res.statusCode = 500;
-      res.json({ error: err });
+      res.json({ error: err.message });
     }
   });
 });
