@@ -1,11 +1,26 @@
 /**
- * Initialize the leaderboard table of data, with a single AJAX load. Cache
- * the rendered tables.
+ * Initialize the leaderboard table of data, and setup the menu buttons.
  */
 function initLeaderboard()
 {
-  // Setup our leaderboard
-  $.get('/api/players/stats', {}, function(data, text, xhr) {
+  // Setup the menu buttons
+  // TODO
+
+  // Setup our leaderboard with default display of "Current Month"
+  var now = new Date();
+  var month = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  loadLeaderboard(month.getTime())
+}
+
+/**
+ * Helper method to load a specified date range to the leaderboard.
+ * TODO: cache the results
+ * TODO: fix the GameDay setup
+ */
+function loadLeaderboard(time)
+{
+  $.get('/api/players/stats/' + time, {}, function(data, text, xhr) {
 
     //$('.ui.dropdown').dropdown();
     // TODO: might be better to do a new AJAX query? Not performance wise though...

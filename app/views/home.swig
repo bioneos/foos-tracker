@@ -14,14 +14,21 @@
   </div>
 
   <div class="ui segment basic" id="leaderboard-wrap">
-    <div id="statsDropdown" class="ui floating dropdown labeled icon button">
-      <!-- img id="main-logo" class="logo" src="/images/logo.png" -->
-      <i class="bar chart icon"></i>
-      <span class="text">Stats</span>
-      <div class="menu">
-        <div class="item" data-value="game">Game</div>
-        <div class="item" data-value="game-day">Game Day (GD)</div>
-    </div>
+    <div class="ui secondary pointing menu" id="leaderboard-actions">
+      <a id="leaderboard-month" class="active item">Month</a>
+      <a id="leaderboard-week" class="item">Week</a>
+      <a id="leaderboard-gameday" class="item">Game Day</a>
+      <a id="leaderboard-game" class="item">Game</a>
+      <div class="right item">
+        <div id="statsDropdown" class="ui floating dropdown labeled icon button">
+          <i class="bar chart icon"></i>
+          <span class="text">Stats</span>
+          <div class="menu">
+            <div class="item" data-value="game">Game</div>
+            <div class="item" data-value="game-day">Game Day (GD)</div>
+          </div>
+        </div>
+      </div>
     </div>
     <table id="leaderboard" class="ui celled padded striped table unstackable">
       <thead>
