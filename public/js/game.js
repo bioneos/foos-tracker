@@ -1,3 +1,8 @@
+// TODO: The globally defined "game" variable is very fragile, and
+//   lacking other important game details. We need to switch to a
+//   more robust way of doing this.
+var game = {};
+
 /**
  * Fill up the players-list with the current players of this game, 
  * and add their GOAL buttons, then add the remaining players to the
@@ -35,10 +40,9 @@ function initGamePage()
  */
 function addActivePlayer(player)
 {
-  var button = '<a href="#" onclick="removeActivePlayer(' + player.id + ')"><i class="fa fa-lg fa-remove"></i></a>' ;
-  button += '<button class="ui button" onclick="score(' + player.id + ');">Goal!</button>' ;
-  button += '<a href="#" onclick="undoGoal(' + player.id + ', event)"><i class="fa fa-lg fa-undo"></i></a>';
-  $('#players-list').append('<li class="ui column" id="player-list-' + player.id + '"><p>' + player.name + '</p>' + button + '</li>');
+  var removeButton = ' <a href="#" onclick="removeActivePlayer(' + player.id + ')"><i class="fa fa-lg fa-remove"></i></a> ' ;
+  var goalButton = '<button class="ui button" onclick="score(' + player.id + ');">Goal!</button>' ;
+  $('#players-list').append('<li class="ui column" id="player-list-' + player.id + '"><p>' + player.name + removeButton + '</p>' + goalButton + '</li>');
 
   // Add player to the Scoreboard
   $('#scoreboard').append('<div class="ui column" id="player-score-' + player.id + '">' + 
@@ -112,27 +116,18 @@ function score(pid)
 }
 
 /**
- * Undo the last Goal button press
+ * Undo the last Goal button press.
  */
-// TODO - migrate this method
-function undoGoal(pid, e)
+function undoGoal()
 {
-  e.preventDefault() ;
-
-  if (!game[pid] || game[pid].length === 0) return ;
-
-  var lastGoal = game[pid].pop() ;
   $.ajax({
     'url' : '/api/game/' + gameId + '/undo',
     'method' : 'POST',
-    'success' : function() {
-      // Our goal has already been removed from the stack, update our UI
-      $('#player-score-' + pid).children('h2').replaceWith('<h2>' + game[pid].length + '</h2>');
+    'success' : function(data) {
+      // Ensure we are on the same page as the server
+      refreshGameInfo();
     },
     'error' : function() {
-      // Dont update our UI and put the failed goal back on the stack
-      game[pid].push(lastGoal) ;
-
       // TODO: Should have a user warning here of the failure to remove the goal
     }
   }) ;
@@ -143,22 +138,23 @@ function undoGoal(pid, e)
  */
 function refreshGameInfo()
 {
+  // Reseting all local data:
+  game = {};
+
   $.get('/api/game/' + gameId, {}, function(data, text, xhr) {
     var winnerId = data.winner;
     var winner = null;
     
     // Sum all goals
-    var goals = {};
     data.Goals.forEach(function(goal) {
-      goals[goal.PlayerId] = goals[goal.PlayerId] || 0;
-      goals[goal.PlayerId]++;
+      game[goal.PlayerId] = game[goal.PlayerId] || [];
       game[goal.PlayerId].push(goal.id);
     });
 
     // Update player scores
     data.Players.forEach(function(player) {
-      var numGoals = goals[player.id] || 0;
-      $('#player-score-' + player.id).children('h2').replaceWith('<h2>' + numGoals + '</h2>');
+      game[player.id] = game[player.id] || [];
+      $('#player-score-' + player.id).children('h2').replaceWith('<h2>' + game[player.id].length + '</h2>');
 
       if (winnerId === player.id)
         winner = player;
@@ -197,10 +193,8 @@ function rematch()
   }) ;
 }
 
-function abortGame(event)
+function abortGame()
 {
-  event.stopPropagation() ;
-
   // TODO: what to do on error?
   $.ajax({
     'url' : '/api/game/' + gameId,

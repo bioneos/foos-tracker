@@ -196,12 +196,12 @@ function playerManagement(type, req, res)
  * Undo the last goal scored in a Game. 
  */
 router.post('/game/:game_id/undo', function (req, res, next) {
+  var targetGoal = null;
   db.Game.find({ include: [ db.Goal ], where: { id: req.params['game_id'] }})
   .then(function(game) {
     if (!game) throw new GameNotFound();
 
     // Find the newest Goal
-    var targetGoal = null;
     game.Goals.forEach(function(goal) {
       if (targetGoal === null) 
         targetGoal = goal;
@@ -230,7 +230,10 @@ router.post('/game/:game_id/undo', function (req, res, next) {
     }
   })
   .then(function() {
-    res.json({ success: 'Last goal undone for GameID: ' + req.params['game_id'] });
+    res.json({ 
+      success: 'Last goal undone for GameID: ' + req.params['game_id'],
+      goal_id: targetGoal.id
+    });
   })
   .catch(function(err) {
     if (err instanceof GameNotFound)

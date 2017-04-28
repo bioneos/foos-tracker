@@ -18,26 +18,47 @@
 
 {% block content %}
   <h1>Let's Play FOOSBALL!</h1>
-  
-  <div class="ui center aligned equal width grid">
-    <div id="scoreboard" class="ui row"></div>
+  <div class="ui right floated basic segment">
+    <span id="game-timer">00:00:00</span>
+  </div>
+  <div class="ui basic segment">
+    <div class="ui horizontal list">
+      <div class="item">
+        <div class="ui mini circular icon button" onclick="abortGame();">
+          <i class="trash icon"></i>
+        </div>
+      </div>
+      <div class="item">
+        <div class="ui mini circular icon button" onclick="undoGoal();">
+          <i class="undo icon"></i>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div id="players" class="ui center aligned equal width grid">
-    <div class="ui row"><div class="ui column"><h2 class="ui header green">Players</h2></div></div>
+  <div class="ui basic segment">
+    <div class="ui center aligned equal width grid">
+      <div id="scoreboard" class="ui row"></div>
+    </div>
 
-    <ul id="players-list" class="ui row"></ul>
+    <div id="players" class="ui center aligned equal width grid">
+      <div class="ui row"><div class="ui column"><h2 class="ui header green">Players</h2></div></div>
 
-    <div class="ui row controls">
-      <div class="ui column">
-        <select class="ui dropdown">
-          <option value="0">Select a Player...</option>
-        </select>
-        <button class="ui large button" onclick="joinGame();" id="player-game-join">Join Game</button>
-      </div> 
+      <ul id="players-list" class="ui row"></ul>
+
+      <div class="ui row controls">
+        <div class="ui column">
+          <select class="ui dropdown">
+            <option value="0">Select a Player...</option>
+          </select>
+          <button class="ui large button" onclick="joinGame();" id="player-game-join">Join Game</button>
+        </div> 
+      </div>
     </div>
   </div>
   <div id="winner" class="ui inverted green segment center aligned"></div>
 
-  <div id="start-time" class="ui inverted segment footer"><a href="#" onclick="abortGame(event) ;"><i  class="fa fa-trash"></i></a>{{ gameStart.toString() }}</div>
+  <div id="start-time" class="ui inverted segment footer">
+   {{ gameStart.toString() }}
+  </div>
 {% endblock %}
