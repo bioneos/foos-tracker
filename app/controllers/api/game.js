@@ -28,19 +28,22 @@ router.post('/game/:game_id/player/:player_id/goal', function (req, res, next) {
   var targetGame = null;
   var targetPlayer = null;
 
-  db.Game.find({ include: [ db.Goal ], where: { id: req.params['game_id'] }})
+  db.Game.find({ 
+    include: [ db.Goal, db.Player ], 
+    where: { id: req.params['game_id'] }
+  })
   .then(function(game) {
+    // Ensure we found our game, and it isn't in progress
     if (!game) throw new GameNotFound();
     else if (game.winner != null) throw new GameNotInProgress();
-
     targetGame = game;
-    return db.Player.find({ where: {id: req.params['player_id'] }});
-  })
-  .then(function(player) {
-    // TODO: Better yet, only search within players associated with this
-    // game so that outside players cannot "score".
-    if (!player) throw new PlayerNotFound();
-    targetPlayer = player;
+
+    // Now find our player
+    game.Players.forEach(function(player) {
+      if (player.id == req.params['player_id'])
+        targetPlayer = player;
+    });
+    if (!targetPlayer) throw new PlayerNotFound();
 
     return db.Goal.create({ when: new Date() })
   })
@@ -68,12 +71,12 @@ router.post('/game/:game_id/player/:player_id/goal', function (req, res, next) {
     if (err instanceof GameNotFound)
     {
       res.statusCode = 404;
-      res.json({ error: 'Cannot find that game'});
+      res.json({ error: 'Cannot find specified game, GameID: ' + req.params['game_id']});
     }
     else if (err instanceof PlayerNotFound)
     {
       res.statusCode = 404;
-      res.json({ error: 'Cannot find that player'});
+      res.json({ error: 'That player is not part of this game, PlayerID: ' + req.params['player_id']});
     }
     else if (err instanceof GameNotInProgress)
     {
