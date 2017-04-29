@@ -303,9 +303,54 @@ router.post('/game/create', function (req, res, next) {
 });
 
 /**
- * Get Game details.
+ * Get Game timeline details. The format of the response was dictated by the
+ * previous API implementation, and I think we might want to change it eventually.
+ * But for now, it will work with the existing graph with this form. Any changes
+ * would require a change to the Game timeline graph.
  */
-router.get('/game/:game_id', function (req, res, next) {
+router.get('/game/timeline/:game_id/', function (req, res, next) {
+  db.Game.findById(req.params['game_id'], { include: [ db.Player, db.Goal ]})
+  .then(function(game) {
+    if (game == null) 
+    {
+      res.statusCode = 404;
+      return res.json({});
+    }
+    
+    // Found the game, not transform into our expected timeline format
+    var ret = { 
+      id: game.id,
+      when: game.when,
+      threshold: game.threshold,
+      goals: {}
+    };
+    // Build an easier to use Player map, and initialize everyone's goals array
+    var pmap = {};
+    game.Players.forEach(function(player) { 
+      pmap[player.id] = player; 
+      ret.goals[player.nick] = [{ num: 0, when: game.when }];
+    });
+    // Build the goals timeline
+    game.Goals.forEach(function(goal) {
+      var nick = pmap[goal.PlayerId].nick;
+      ret.goals[nick].push({
+        num: ret.goals[nick].length,
+        when: goal.when,
+      });
+    });
+    ret.winner = (game.winner) ? pmap[game.winner].nick : null;
+    res.json(ret);
+  })
+  .catch(function(err) {
+    res.statusCode = 500;
+    res.json({ error: err.message });
+  });
+});
+
+/**
+ * Get basic Game details.
+ */
+router.get('/game/:game_id/', function (req, res, next) {
   db.Game.findById(req.params['game_id'], { include: [ db.Player, db.Goal ]})
   .then(function(game) {
     if (game == null) 
@@ -313,6 +358,7 @@ router.get('/game/:game_id', function (req, res, next) {
       res.statusCode = 404;
       game = {};
     }
+
     res.json(game);
   })
   .catch(function(err) {

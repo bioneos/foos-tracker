@@ -7,7 +7,7 @@ var FoosTracker = FoosTracker || {};
 $(document).on('ready', function(ev) {
   // Easy to change routing (should be API) 
   FoosTracker.stats_url_base = "/api/games/"
-  FoosTracker.stats_game_url_base = "/api/game/"
+  FoosTracker.stats_game_url_base = "/api/game/timeline/"
 
   // Common graph setup:
   FoosTracker.graph = new FoosGraph();
