@@ -82,7 +82,7 @@ function EmbOverTimeGraph(config)
     if (!start) start = 0;
     if (!stop) stop = new Date().getTime();
 
-    $.ajax("/history/games/" + start + "/" + stop, {
+    $.ajax(FoosTracker.stats_url_base + start + "/" + stop, {
       dataType: 'json',
       success: function(data, text, jqxhr) {
         updateData(data);
