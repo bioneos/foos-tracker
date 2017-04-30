@@ -303,6 +303,28 @@ router.post('/game/create', function (req, res, next) {
 });
 
 /**
+ * Get Game details for the last played game
+ */
+router.get('/game/last', function (req, res, next) {
+  db.Game.findOne({
+    order: [[ 'when', 'DESC' ]],
+    include: [ db.Player, db.Goal ]
+  })
+  .then(function(game) {
+    if (game == null) 
+    {
+      res.statusCode = 404;
+      game = {};
+    }
+    res.json(game);
+  })
+  .catch(function(err) {
+    res.statusCode = 500;
+    res.json({ error: err.message });
+  });
+});
+
+/**
  * Get Game details.
  */
 router.get('/game/:game_id', function (req, res, next) {

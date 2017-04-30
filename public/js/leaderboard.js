@@ -14,9 +14,11 @@ function initLeaderboard()
   lb.week = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   lb.week.setHours(-24 * (lb.week.getDay() > 0 ? (lb.week.getDay() - 1) : 6));
   // Make API route to get details of last game played (/game/last)
-  lb.gameday = 'TODO'; 
-  lb.game = 'TODO';
-  // TODO
+  $.get('/api/game/last', {}, function(data, text, xhr) {
+    lb.gameday = new Date(data.when);
+    lb.gameday = new Date(lb.gameday.getFullYear(), lb.gameday.getMonth(), lb.gameday.getDate());
+    lb.game = new Date(data.when);
+  });
   $('#leaderboard-month').on('click', selectMonth);
   $('#leaderboard-week').on('click', selectWeek);
   $('#leaderboard-gameday').on('click', selectGameDay);
@@ -24,10 +26,14 @@ function initLeaderboard()
 
   // Setup the stat grouping dropdown
   $('#stats-btn-std').on('click', function() {
+    $('#stats-btn-std').addClass('active');
+    $('#stats-btn-gd').removeClass('active');
     $('table .gd').addClass('hidden');
     $('table .game').removeClass('hidden');
   });
   $('#stats-btn-gd').on('click', function() {
+    $('#stats-btn-std').removeClass('active');
+    $('#stats-btn-gd').addClass('active');
     $('table .game').addClass('hidden');
     $('table .gd').removeClass('hidden');
   });
@@ -38,14 +44,13 @@ function initLeaderboard()
 
 /**
  * Helper method to load a specified date range to the leaderboard.
- * TODO: cache the results
- * TODO: fix the GameDay setup
  */
 function loadLeaderboard(time)
 {
   $.get('/api/players/stats/' + time, {}, function(data, text, xhr) {
     // Reset the stats
-    $('#statsDropdown').dropdown('set selected', 'game');
+    $('#stats-btn-std').addClass('active');
+    $('#stats-btn-gd').removeClass('active');
     $('table .gd').addClass('hidden');
     $('table .game').removeClass('hidden');
 

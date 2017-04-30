@@ -69,7 +69,7 @@ function getPlayerStats({start = 0, stop = Date.now(), sortBy = 'win%', sortOrde
   db.Game.findAll({ 
     'include' : [ db.Player, db.Goal ], 
     'where': {
-      createdAt: { gt: start, lte: stop },
+      createdAt: { gte: start, lt: stop },
       winner: { ne: null }
     }
   })
