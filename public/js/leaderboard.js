@@ -59,7 +59,7 @@ function loadLeaderboard(time)
     lb.empty();
     
     // Process results
-    if (data.stats)
+    if (data.stats && data.stats.length > 0)
     {
       data.stats.forEach(function(player) {
         var rowClass = (player.retired) ? 'disabled' : '' ;
@@ -102,7 +102,8 @@ function loadLeaderboard(time)
     }
     else
     {
-      lb.append('<td colspan="6">Apparently no one has been playing lately!</td>');
+      // NOTE: Not sure a hardcoded "colspan" is the best approach here, but it works...
+      lb.append('<td colspan="6">No games yet for this time period!</td>');
     }
   }) ;
 }
