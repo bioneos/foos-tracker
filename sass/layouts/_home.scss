@@ -1,0 +1,10 @@
+svg#recent-games
+{
+  width: 100%;
+  height: 300px;
+
+  @media screen and (min-width: $break-tablet)
+  {
+    height: 150px;
+  }
+}

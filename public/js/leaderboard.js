@@ -30,7 +30,8 @@ function initLeaderboard()
   //$('#leaderboard-game').on('click', selectGame);
 
   // Setup the mobile with dropdown
-  $('#leaderboard-actions .dropdown').dropdown();
+  $('#leaderboard-actions .dropdown').dropdown({onChange: selectFromDropdown});
+  $('#leaderboard-actions .dropdown').dropdown('set selected', 'Month');
 
   // Setup the stat grouping buttons
   $('.stats-btn-std').on('click', function() {
@@ -117,12 +118,25 @@ function loadLeaderboard(time)
 }
 
 /**
+ * Helper function for the selection change from the mobiel dropdown menu item.
+ */
+function selectFromDropdown(value, text){
+  console.log(value, text);
+  if (value == 'year') selectYear();
+  else if (value == 'quarter') selectQuarter();
+  else if (value == 'month') selectMonth();
+  else if (value == 'week') selectWeek();
+}
+
+/**
  * Helper to select the Year menu item.
  */
 function selectYear()
 {
   $('#leaderboard-actions a.item').removeClass('active');
   $('#leaderboard-year').addClass('active');
+  $('#leaderboard-actions .dropdown').dropdown('set selected', 'Year');
+
   loadLeaderboard(FoosTracker.leaderboard.year.getTime());
   $('#leaderboard-date').empty().append(FoosTracker.leaderboard.year.getFullYear());
 }
@@ -133,6 +147,8 @@ function selectQuarter()
 {
   $('#leaderboard-actions a.item').removeClass('active');
   $('#leaderboard-quarter').addClass('active');
+  $('#leaderboard-actions .dropdown').dropdown('set selected', 'Quarter');
+  
   loadLeaderboard(FoosTracker.leaderboard.quarter.getTime());
   $('#leaderboard-date').empty().append("Q" + ((FoosTracker.leaderboard.quarter.getMonth() / 3) + 1));
 }
@@ -143,6 +159,8 @@ function selectMonth()
 {
   $('#leaderboard-actions a.item').removeClass('active');
   $('#leaderboard-month').addClass('active');
+  $('#leaderboard-actions .dropdown').dropdown('set selected', 'Month');
+  
   loadLeaderboard(FoosTracker.leaderboard.month.getTime());
   var month = FoosTracker.leaderboard.month.toLocaleString('en-us', {month: "long"});
   $('#leaderboard-date').empty().append(month + ", " + FoosTracker.leaderboard.month.getFullYear());
@@ -155,6 +173,8 @@ function selectWeek()
 {
   $('#leaderboard-actions a.item').removeClass('active');
   $('#leaderboard-week').addClass('active');
+  $('#leaderboard-actions .dropdown').dropdown('set selected', 'Week');
+  
   loadLeaderboard(FoosTracker.leaderboard.week.getTime());
   var date = FoosTracker.leaderboard.week;
   var month = date.toLocaleString('en-us', {month: "long"});

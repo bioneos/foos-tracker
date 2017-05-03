@@ -13,10 +13,23 @@
     <a href="/players/create" class="ui button">Add a Player</a>
   </div>
 
+  <div class="ui segment basic" id="recent-games-wrap">
+    <h2>Recent Games</h2>
+    <svg id="recent-games"></svg>
+  </div>
+
   <div class="ui segment basic" id="leaderboard-wrap">
+    <h2>Leaderboard</h2>
     <div class="ui menu" id="leaderboard-actions">
-      <div id="leaderboard-dropdown" class="active item item-mobile">
-        Year (drop)
+      <div id="leaderboard-dropdown" class="ui selection dropdown item item-mobile">
+        <input type="hidden" name="lb-date">
+        <div class="default text">Select Period</div>
+        <div class="menu">
+          <div class="item">Year</div>
+          <div class="item">Quarter</div>
+          <div class="item">Month</div>
+          <div class="item">Week</div>
+        </div>
       </div>
       <a id="leaderboard-year" class="active item item-fw">Year</a>
       <a id="leaderboard-quarter" class="item item-fw">Quarter</a>
