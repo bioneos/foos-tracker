@@ -10,36 +10,43 @@ function initLeaderboard()
   
   // Setup the menu buttons
   var now = new Date();
+  lb.year = new Date(now.getFullYear(), 1, 1);
+  lb.quarter = new Date(now.getFullYear(), now.getMonth() % 3, 1);
   lb.month = new Date(now.getFullYear(), now.getMonth(), 1);
   lb.week = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   lb.week.setHours(-24 * (lb.week.getDay() > 0 ? (lb.week.getDay() - 1) : 6));
   // Make API route to get details of last game played (/game/last)
-  $.get('/api/game/last', {}, function(data, text, xhr) {
+  /*$.get('/api/game/last', {}, function(data, text, xhr) {
     lb.gameday = new Date(data.when);
     lb.gameday = new Date(lb.gameday.getFullYear(), lb.gameday.getMonth(), lb.gameday.getDate());
     lb.game = new Date(data.when);
-  });
+  });*/
+  $('#leaderboard-year').on('click', selectYear);
+  $('#leaderboard-quarter').on('click', selectQuarter);
   $('#leaderboard-month').on('click', selectMonth);
   $('#leaderboard-week').on('click', selectWeek);
-  $('#leaderboard-gameday').on('click', selectGameDay);
-  $('#leaderboard-game').on('click', selectGame);
+  //$('#leaderboard-gameday').on('click', selectGameDay);
+  //$('#leaderboard-game').on('click', selectGame);
 
-  // Setup the stat grouping dropdown
-  $('#stats-btn-std').on('click', function() {
-    $('#stats-btn-std').addClass('active');
-    $('#stats-btn-gd').removeClass('active');
+  // Setup the mobile with dropdown
+  $('#leaderboard-actions .dropdown').dropdown();
+
+  // Setup the stat grouping buttons
+  $('.stats-btn-std').on('click', function() {
+    $('.stats-btn-std').addClass('active');
+    $('.stats-btn-gd').removeClass('active');
     $('table .gd').addClass('hidden');
     $('table .game').removeClass('hidden');
   });
-  $('#stats-btn-gd').on('click', function() {
-    $('#stats-btn-std').removeClass('active');
-    $('#stats-btn-gd').addClass('active');
+  $('.stats-btn-gd').on('click', function() {
+    $('.stats-btn-std').removeClass('active');
+    $('.stats-btn-gd').addClass('active');
     $('table .game').addClass('hidden');
     $('table .gd').removeClass('hidden');
   });
 
   // Setup our leaderboard with default display of "Current Month"
-  loadLeaderboard(lb.month.getTime())
+  selectMonth();
 }
 
 /**
@@ -49,8 +56,8 @@ function loadLeaderboard(time)
 {
   $.get('/api/players/stats/' + time, {}, function(data, text, xhr) {
     // Reset the stats
-    $('#stats-btn-std').addClass('active');
-    $('#stats-btn-gd').removeClass('active');
+    $('.stats-btn-std').addClass('active');
+    $('.stats-btn-gd').removeClass('active');
     $('table .gd').addClass('hidden');
     $('table .game').removeClass('hidden');
 
@@ -108,6 +115,24 @@ function loadLeaderboard(time)
   }) ;
 }
 
+/**
+ * Helper to select the Year menu item.
+ */
+function selectYear()
+{
+  $('#leaderboard-actions a.item').removeClass('active');
+  $('#leaderboard-year').addClass('active');
+  loadLeaderboard(FoosTracker.leaderboard.year.getTime());
+}
+/**
+ * Helper to select the Quarter menu item.
+ */
+function selectQuarter()
+{
+  $('#leaderboard-actions a.item').removeClass('active');
+  $('#leaderboard-quarter').addClass('active');
+  loadLeaderboard(FoosTracker.leaderboard.quarter.getTime());
+}
 /**
  * Helper to select the Month menu item.
  */

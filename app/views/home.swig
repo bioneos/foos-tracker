@@ -14,17 +14,30 @@
   </div>
 
   <div class="ui segment basic" id="leaderboard-wrap">
-    <div class="ui secondary pointing menu" id="leaderboard-actions">
-      <a id="leaderboard-month" class="active item">Month</a>
-      <a id="leaderboard-week" class="item">Week</a>
-      <a id="leaderboard-gameday" class="item">Game Day</a>
-      <a id="leaderboard-game" class="item">Game</a>
-      <div class="right item">
+    <div class="ui menu" id="leaderboard-actions">
+      <div id="leaderboard-dropdown" class="active item item-mobile">
+        Year (drop)
+      </div>
+      <a id="leaderboard-year" class="active item item-fw">Year</a>
+      <a id="leaderboard-quarter" class="item item-fw">Quarter</a>
+      <a id="leaderboard-month" class="item item-fw">Month</a>
+      <a id="leaderboard-week" class="item item-fw">Week</a>
+      <div class="right item item-mobile">
         <div class="ui mini icon buttons">
-          <div id="stats-btn-std" class="ui labeled icon button">
+          <div class="stats-btn-std ui icon button">
+            <i class="bar chart icon"></i>
+          </div>
+          <div class="stats-btn-gd ui right icon button">
+            <i class="calendar outline icon"></i>
+          </div>
+        </div>
+      </div>
+      <div class="right item item-fw">
+        <div class="ui mini labeled icon buttons">
+          <div class="stats-btn-std ui icon button">
             <i class="bar chart icon"></i> Std
           </div>
-          <div id="stats-btn-gd" class="ui right labeled icon button">
+          <div class="stats-btn-gd ui right icon button">
             GD <i class="calendar outline icon"></i>
           </div>
         </div>

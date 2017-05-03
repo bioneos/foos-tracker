@@ -1,0 +1,43 @@
+/**
+ * Leadeboard table related
+ **/
+
+/** Responsive adjustment for Leaderboard **/
+
+#leaderboard-actions .item-mobile
+{
+  display: flex;
+}
+th.record,
+td.record
+{
+  display: table-cell;
+}
+th.record-fw,
+td.record-fw,
+#leaderboard-actions .item-fw
+{
+  display: none;
+}
+
+@media screen and (min-width: $break-tablet)
+{
+
+  th.record,
+  td.record,
+  #leaderboard-actions .item-mobile
+  {
+    display: none;
+  }
+
+  th.record-fw,
+  td.record-fw
+  {
+    display: table-cell;
+  }
+
+  #leaderboard-actions .item-fw
+  {
+    display: flex;
+  }
+}

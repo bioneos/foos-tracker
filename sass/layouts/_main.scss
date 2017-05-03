@@ -11,41 +11,9 @@ header #main-title
   padding-top: 65px;
 }
 
-/* Alwaus hide modal messages initially */
+/* Always hide modal messages initially */
 .ui.modal
 {
   display: none;
 }
 
-/**
- * Home page related
- **/
-th.record,
-td.record
-{
-  display: block;
-
-  @media screen and (min-width: $break-tablet)
-  {
-    display: none;
-  }
-}
-
-th.record-fw,
-td.record-fw
-{
-  display: none;
-  @media screen and (min-width: $break-tablet)
-  {
-    display: table-cell;
-  }
-}
-
-
-/**
- * Game page related
- **/
-#winner
-{
-  display: none;
-}
