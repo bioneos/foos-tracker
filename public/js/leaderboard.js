@@ -10,8 +10,9 @@ function initLeaderboard()
   
   // Setup the menu buttons
   var now = new Date();
-  lb.year = new Date(now.getFullYear(), 1, 1);
-  lb.quarter = new Date(now.getFullYear(), now.getMonth() % 3, 1);
+  lb.year = new Date(now.getFullYear(), 0, 1);
+  lb.quarter = new Date(now.getFullYear(), now.getMonth() - (now.getMonth() % 3), 1);
+  console.log(lb.quarter);
   lb.month = new Date(now.getFullYear(), now.getMonth(), 1);
   lb.week = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   lb.week.setHours(-24 * (lb.week.getDay() > 0 ? (lb.week.getDay() - 1) : 6));
@@ -123,6 +124,7 @@ function selectYear()
   $('#leaderboard-actions a.item').removeClass('active');
   $('#leaderboard-year').addClass('active');
   loadLeaderboard(FoosTracker.leaderboard.year.getTime());
+  $('#leaderboard-date').empty().append(FoosTracker.leaderboard.year.getFullYear());
 }
 /**
  * Helper to select the Quarter menu item.
@@ -132,6 +134,7 @@ function selectQuarter()
   $('#leaderboard-actions a.item').removeClass('active');
   $('#leaderboard-quarter').addClass('active');
   loadLeaderboard(FoosTracker.leaderboard.quarter.getTime());
+  $('#leaderboard-date').empty().append("Q" + ((FoosTracker.leaderboard.quarter.getMonth() / 3) + 1));
 }
 /**
  * Helper to select the Month menu item.
@@ -141,6 +144,8 @@ function selectMonth()
   $('#leaderboard-actions a.item').removeClass('active');
   $('#leaderboard-month').addClass('active');
   loadLeaderboard(FoosTracker.leaderboard.month.getTime());
+  var month = FoosTracker.leaderboard.month.toLocaleString('en-us', {month: "long"});
+  $('#leaderboard-date').empty().append(month + ", " + FoosTracker.leaderboard.month.getFullYear());
 }
 
 /**
@@ -151,6 +156,18 @@ function selectWeek()
   $('#leaderboard-actions a.item').removeClass('active');
   $('#leaderboard-week').addClass('active');
   loadLeaderboard(FoosTracker.leaderboard.week.getTime());
+  var date = FoosTracker.leaderboard.week;
+  var month = date.toLocaleString('en-us', {month: "long"});
+  var day = date.getDate();
+  if (date.getDate() == 1 || date.getDate() == 21 || date.getDate() == 31)
+    day += "st";
+  else if (date.getDate() == 2 || date.getDate() == 22)
+    day += "nd";
+  else if (date.getDate() == 3 || date.getDate() == 23)
+    day += "rd";
+  else
+    day += "th"
+  $('#leaderboard-date').empty().append(month + " " + day + ", " + date.getFullYear());
 }
 
 /**
@@ -161,6 +178,18 @@ function selectGameDay()
   $('#leaderboard-actions a.item').removeClass('active');
   $('#leaderboard-gameday').addClass('active');
   loadLeaderboard(FoosTracker.leaderboard.gameday.getTime());
+  var date = FoosTracker.leaderboard.gameday;
+  var month = date.toLocaleString('en-us', {month: "long"});
+  var day = date.getDate();
+  if (date.getDate() == 1 || date.getDate() == 21 || date.getDate() == 31)
+    day += "st";
+  else if (date.getDate() == 2 || date.getDate() == 22)
+    day += "nd";
+  else if (date.getDate() == 3 || date.getDate() == 23)
+    day += "rd";
+  else
+    day += "th"
+  $('#leaderboard-date').empty().append(month + " " + day + ", " + date.getFullYear());
 }
 
 /**
@@ -171,4 +200,5 @@ function selectGame()
   $('#leaderboard-actions a.item').removeClass('active');
   $('#leaderboard-game').addClass('active');
   loadLeaderboard(FoosTracker.leaderboard.game.getTime());
+  $('#leaderboard-date').empty().append(FoosTracker.leaderboard.game.toLocaleString('en-us', {date: "long"}));
 }

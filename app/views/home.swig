@@ -62,6 +62,9 @@
       </thead>
       <tbody>
       </tbody>
+      <tfoot class="full-width">
+        <tr><th id="leaderboard-date" colspan="6">Date</th></tr>
+      </tfoot>
     </table>
   </div>
 {% endblock %}
