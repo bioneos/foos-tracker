@@ -12,7 +12,6 @@ function initLeaderboard()
   var now = new Date();
   lb.year = new Date(now.getFullYear(), 0, 1);
   lb.quarter = new Date(now.getFullYear(), now.getMonth() - (now.getMonth() % 3), 1);
-  console.log(lb.quarter);
   lb.month = new Date(now.getFullYear(), now.getMonth(), 1);
   lb.week = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   lb.week.setHours(-24 * (lb.week.getDay() > 0 ? (lb.week.getDay() - 1) : 6));
@@ -121,7 +120,6 @@ function loadLeaderboard(time)
  * Helper function for the selection change from the mobiel dropdown menu item.
  */
 function selectFromDropdown(value, text){
-  console.log(value, text);
   if (value == 'year') selectYear();
   else if (value == 'quarter') selectQuarter();
   else if (value == 'month') selectMonth();
