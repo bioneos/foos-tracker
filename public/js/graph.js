@@ -17,9 +17,7 @@ $(document).on('ready', function(ev) {
     "#84cf3e", "#30a06a", "#c8df43", "#295500", "#004222", "#4e5b00"]);
 
   // Handle resize events
-  $(window).on('resize', function() {
-    updateWindowSize();
-  });
+  $(window).on('resize', updateWindowSize);
 
   // Initialize the popup window
   $('.sidebar').sidebar('setting', 'transition', 'overlay');

@@ -85,6 +85,8 @@
 {% block scripts %}
   <script src="/js/home.js"></script>
   <script src="/js/leaderboard.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.1/d3.js"></script>
+  <script src="/js/recentGames.js"></script>
   <script>
     $(document).on('ready', function() { initLeaderboard(); });
   </script>
