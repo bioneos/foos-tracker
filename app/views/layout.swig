@@ -11,6 +11,10 @@
   {% if ENV_DEVELOPMENT %}
     <script src="http://localhost:35729/livereload.js"></script>
   {% endif %}
+
+  <link rel="icon" type="image/png" href="/favicon.png" sizes="16x16">  
+  <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32">  
+  <link rel="icon" type="image/png" href="/favicon-96.png" sizes="96x96">  
 </head>
 <body>
   {% block sidebar %}{% endblock %}
