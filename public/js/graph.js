@@ -119,6 +119,7 @@ $(document).on('ready', function(ev) {
   });
 });
 
+// FIXME: Use the namespace!!
 /**
  * Window resize handler
  */
