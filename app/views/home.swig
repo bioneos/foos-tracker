@@ -13,11 +13,6 @@
     <a href="/players/create" class="ui button">Add a Player</a>
   </div>
 
-  <div class="ui segment basic" id="recent-games-wrap">
-    <h2>Recent Games</h2>
-    <svg id="recent-games"></svg>
-  </div>
-
   <div class="ui segment basic" id="leaderboard-wrap">
     <h2>Leaderboard</h2>
     <div class="ui menu" id="leaderboard-actions">
@@ -85,8 +80,6 @@
 {% block scripts %}
   <script src="/js/home.js"></script>
   <script src="/js/leaderboard.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.1/d3.js"></script>
-  <script src="/js/recentGames.js"></script>
   <script>
     $(document).on('ready', function() { initLeaderboard(); });
   </script>
