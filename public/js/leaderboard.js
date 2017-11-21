@@ -15,6 +15,14 @@ function initLeaderboard()
   lb.month = new Date(now.getFullYear(), now.getMonth(), 1);
   lb.week = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   lb.week.setHours(-24 * (lb.week.getDay() > 0 ? (lb.week.getDay() - 1) : 6));
+  // Exact values will be filled async, use defaults for now (should be fine)
+  lb.gameday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  lb.lastgame = now;
+  $.get('/api/games/last', {}, function(data, text, xhr) {
+    lastgame=new Date(data.games[0].when);
+    lb.gameday=new Date(lastgame.getFullYear(), lastgame.getMonth(), lastgame.getDate());
+    lb.lastgame = lastgame;
+  });
 
   // Setup the main leaderboard dropdown
   var lbActions = $('#leaderboard-actions .dropdown').dropdown({onChange: selectFromDropdown});
@@ -23,6 +31,8 @@ function initLeaderboard()
   $('#leaderboard-quarter').on('click', function() { lbActions.dropdown('set selected', 'Quarter'); });
   $('#leaderboard-month').on('click', function() { lbActions.dropdown('set selected', 'Month'); });
   $('#leaderboard-week').on('click', function() { lbActions.dropdown('set selected', 'Week'); });
+  $('#leaderboard-gameday').on('click', function() { lbActions.dropdown('set selected', 'Game Day'); });
+  $('#leaderboard-lastgame').on('click', function() { lbActions.dropdown('set selected', 'Last Game'); });
 
   // Setup the stat grouping buttons
   $('.stats-btn-std').on('click', function() {
@@ -113,6 +123,8 @@ function selectFromDropdown(value, text){
   else if (value == 'quarter') selectQuarter();
   else if (value == 'month') selectMonth();
   else if (value == 'week') selectWeek();
+  else if (value == 'game day') selectGameDay();
+  else if (value == 'last game') selectLastGame();
 }
 
 /**
@@ -184,6 +196,7 @@ function selectGameDay()
 {
   $('#leaderboard-actions a.item').removeClass('active');
   $('#leaderboard-gameday').addClass('active');
+
   loadLeaderboard(FoosTracker.leaderboard.gameday.getTime());
   var date = FoosTracker.leaderboard.gameday;
   var month = date.toLocaleString('en-us', {month: "long"});
@@ -200,12 +213,12 @@ function selectGameDay()
 }
 
 /**
- * Helper to select the Game menu item.
+ * Helper to select the last Game played menu item.
  */
-function selectGame()
+function selectLastGame()
 {
   $('#leaderboard-actions a.item').removeClass('active');
-  $('#leaderboard-game').addClass('active');
-  loadLeaderboard(FoosTracker.leaderboard.game.getTime());
-  $('#leaderboard-date').empty().append(FoosTracker.leaderboard.game.toLocaleString('en-us', {date: "long"}));
+  $('#leaderboard-lastgame').addClass('active');
+  loadLeaderboard(FoosTracker.leaderboard.lastgame.getTime());
+  $('#leaderboard-date').empty().append(FoosTracker.leaderboard.lastgame.toLocaleString('en-us', {date: "long"}));
 }
