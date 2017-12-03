@@ -2,50 +2,54 @@
  * Leadeboard table related
  **/
 
+
 /** Responsive adjustment for Leaderboard **/
 
+/** Actions menu **/
 #leaderboard-actions .item-mobile
 {
   display: flex;
+  @media screen and (min-width: $break-tablet)
+  {
+    display: none;
+  }
 }
+
+#leaderboard-actions .item-fw
+{
+  display: none;
+  @media screen and (min-width: $break-tablet)
+  {
+    display: flex;
+  }
+}
+
+/** Main table **/
 th.record,
 td.record
 {
   display: table-cell;
-}
-th.record-fw,
-td.record-fw,
-#leaderboard-actions .item-fw
-{
-  display: none;
+  @media screen and (min-width: $break-tablet)
+  {
+    display: none;
+  }
 }
 
+th.record-fw,
+td.record-fw
+{
+  display: none;
+  @media screen and (min-width: $break-tablet)
+  {
+    display: table-cell;
+  }
+}
+
+/** Footer **/
 tfoot th#leaderboard-date
 {
   text-align: right;
   font-size: .9em;
   color: #555;
   font-style: italic;
-}
-
-@media screen and (min-width: $break-tablet)
-{
-
-  th.record,
-  td.record,
-  #leaderboard-actions .item-mobile
-  {
-    display: none;
-  }
-
-  th.record-fw,
-  td.record-fw
-  {
-    display: table-cell;
-  }
-
-  #leaderboard-actions .item-fw
-  {
-    display: flex;
-  }
 }
