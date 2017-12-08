@@ -92,7 +92,6 @@
 
 {% block scripts %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.1/d3.js"></script>
-  <script src="/js/main.js"></script>
   <script src="/js/graphs/foos.js"></script>
   <script src="/js/graphs/eot.js"></script>
   <script src="/js/graphs/wot.js"></script>

@@ -6,8 +6,8 @@ var FoosTracker = FoosTracker || {};
  **/
 $(document).on('ready', function(ev) {
   // Easy to change routing (should be API) 
-  FoosTracker.stats_url_base = "/stats/games/"
-  FoosTracker.stats_game_url_base = "/stats/game/"
+  FoosTracker.stats_url_base = "/api/games/"
+  FoosTracker.stats_game_url_base = "/api/game/"
 
   // Common graph setup:
   FoosTracker.graph = new FoosGraph();
@@ -85,7 +85,7 @@ $(document).on('ready', function(ev) {
   });
   
   // Grab list of recent games, for the Graph Options GameID drop down
-  $.get('/games/all', {}, function(data, text, xhr) {
+  $.get('/api/games', {}, function(data, text, xhr) {
     // Setup the drop-down for GameByTime
     var active = 0;
     data.games.forEach(function(game) {
