@@ -25,6 +25,9 @@
           <img id="main-logo" class="logo" src="/images/logo.png">
           {% if pagetitle %}<div id="main-title">{{pagetitle}}</div>{% endif %}
         </a>
+        <a href="/players" class="header item">Players</a>
+        <a href="/games" class="header item">Games</a>
+        <a href="/stats" class="header item">Statistics</a>
       </div>
     </header>
 
