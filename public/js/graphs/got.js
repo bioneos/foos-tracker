@@ -134,12 +134,9 @@ function GoalsOverTimeGraph(config)
     // Adjust our scales
     var yMax = d3.max(playersData.entries(), function(d) { return d.value[d.value.length - 1].goals; });
     yScale.domain([0, yMax]);
-    var xMax = d3.max(gamesData.games, function(d) { return new Date(d.when); });
-    var xMin;
-    if (gamesData.games.length > 0) 
-      xMin = new Date(gamesData.games[0].when);
-    xMax = xMax || new Date();
-    xMin = xMin || new Date(xMax);
+    var xExtents = d3.extent(gamesData.games, function(d) { return new Date(d.when); });
+    var xMax = xExtents[1] || new Date();
+    var xMin = xExtents[0] || new Date(xMax);
     xScale.domain([xMin, xMax]);
 
     // Refresh axes

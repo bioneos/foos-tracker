@@ -40,7 +40,7 @@ function getGames({start = 0, stop = Date.now()} = {}, res)
       when: { gt: start, lte: stop } 
     }, 
     order: [
-      ['when', 'DESC']
+      ['when', 'ASC']
     ],
     include: [db.Player, db.Goal]
   }).then(function(games) {
