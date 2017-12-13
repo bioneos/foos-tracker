@@ -14,14 +14,46 @@
   </div>
 
   <div class="ui segment basic" id="leaderboard-wrap">
-    <div id="statsDropdown" class="ui floating dropdown labeled icon button">
-      <!-- img id="main-logo" class="logo" src="/images/logo.png" -->
-      <i class="bar chart icon"></i>
-      <span class="text">Stats</span>
-      <div class="menu">
-        <div class="item" data-value="game">Game</div>
-        <div class="item" data-value="game-day">Game Day (GD)</div>
-    </div>
+    <h2>Leaderboard</h2>
+    <div class="ui small menu" id="leaderboard-actions">
+      <div id="leaderboard-dropdown" class="ui selection dropdown item item-mobile">
+        <input type="hidden" name="lb-date">
+        <div class="default text">Select Period</div>
+        <div class="menu">
+          <div class="item">Year</div>
+          <div class="item">Quarter</div>
+          <div class="item">Month</div>
+          <div class="item">Week</div>
+          <div class="item">Game Day</div>
+          <div class="item">Last Game</div>
+        </div>
+      </div>
+      <a id="leaderboard-year" class="active item item-fw">Year</a>
+      <a id="leaderboard-quarter" class="item item-fw">Quarter</a>
+      <a id="leaderboard-month" class="item item-fw">Month</a>
+      <a id="leaderboard-week" class="item item-fw">Week</a>
+      <a id="leaderboard-gameday" class="item item-fw">Game Day</a>
+      <a id="leaderboard-lastgame" class="item item-fw">Last Game</a>
+      <div class="right item item-mobile">
+        <div class="ui mini icon buttons">
+          <div class="stats-btn-std ui icon button">
+            <i class="bar chart icon"></i>
+          </div>
+          <div class="stats-btn-gd ui right icon button">
+            <i class="calendar outline icon"></i>
+          </div>
+        </div>
+      </div>
+      <div class="right item item-fw">
+        <div class="ui mini labeled icon buttons">
+          <div class="stats-btn-std ui icon button">
+            <i class="bar chart icon"></i> Std
+          </div>
+          <div class="stats-btn-gd ui right icon button">
+            GD <i class="calendar outline icon"></i>
+          </div>
+        </div>
+      </div>
     </div>
     <table id="leaderboard" class="ui celled padded striped table unstackable">
       <thead>
@@ -42,6 +74,9 @@
       </thead>
       <tbody>
       </tbody>
+      <tfoot class="full-width">
+        <tr><th id="leaderboard-date" colspan="6">Date</th></tr>
+      </tfoot>
     </table>
   </div>
 {% endblock %}

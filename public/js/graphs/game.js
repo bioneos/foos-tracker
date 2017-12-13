@@ -122,6 +122,7 @@ function GameGraph(config)
    * @param callback
    *   Function to call upon completed transitioning out. Optional.
    */
+  // TODO: Fix this to handle the new API format for a game
   function updateData(gameData, callback)
   {
     // Function constant

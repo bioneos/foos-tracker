@@ -303,6 +303,28 @@ router.post('/game/create', function (req, res, next) {
 });
 
 /**
+ * Get Game details for the last played game
+ */
+router.get('/game/last', function (req, res, next) {
+  db.Game.findOne({
+    order: [[ 'when', 'DESC' ]],
+    include: [ db.Player, db.Goal ]
+  })
+  .then(function(game) {
+    if (game == null) 
+    {
+      res.statusCode = 404;
+      game = {};
+    }
+    res.json(game);
+  })
+  .catch(function(err) {
+    res.statusCode = 500;
+    res.json({ error: err.message });
+  });
+});
+
+/**
  * Get Game timeline details. The format of the response was dictated by the
  * previous API implementation, and I think we might want to change it eventually.
  * But for now, it will work with the existing graph with this form. Any changes

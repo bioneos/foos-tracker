@@ -1,7 +1,11 @@
 @import "variables";
 
 @import "layouts/main";
+@import "layouts/home";
+@import "layouts/leaderboard";
+@import "layouts/game";
 
 @import "components/history";
+@import "components/leaderboard-actions";
 
 /* @import "theme"; */
