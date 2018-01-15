@@ -185,7 +185,7 @@ function selectWeek()
   else if (date.getDate() == 3 || date.getDate() == 23)
     day += "rd";
   else
-    day += "th"
+    day += "th";
   $('#leaderboard-date').empty().append(month + " " + day + ", " + date.getFullYear());
 }
 
@@ -208,7 +208,7 @@ function selectGameDay()
   else if (date.getDate() == 3 || date.getDate() == 23)
     day += "rd";
   else
-    day += "th"
+    day += "th";
   $('#leaderboard-date').empty().append(month + " " + day + ", " + date.getFullYear());
 }
 

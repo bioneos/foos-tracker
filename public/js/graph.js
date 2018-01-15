@@ -6,8 +6,8 @@ var FoosTracker = FoosTracker || {};
  **/
 $(document).on('ready', function(ev) {
   // Easy to change routing (should be API) 
-  FoosTracker.stats_url_base = "/api/games/"
-  FoosTracker.stats_game_url_base = "/api/game/timeline/"
+  FoosTracker.stats_url_base = "/api/games/";
+  FoosTracker.stats_game_url_base = "/api/game/timeline/";
 
   // Common graph setup:
   FoosTracker.graph = new FoosGraph();
@@ -63,8 +63,8 @@ $(document).on('ready', function(ev) {
     $('#date-range-update').on('click', function(ev) {
       var start = new Date($('#date-range-input-start').val()).getTime();
       var end = new Date($('#date-range-input-end').val()).getTime();
-      if (!(start > 0)) start = 0;
-      if (!(end > 0)) end = new Date().getTime();
+      if (isNaN(start)) start = 0;
+      if (isNaN(end)) end = new Date().getTime();
       FoosTracker.graph.transition(start, end);
 
       $('.sidebar').sidebar('hide');

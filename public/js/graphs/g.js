@@ -152,7 +152,7 @@ function GoalsGraph(config)
     //   our new data to this visualization
     player.select(".arc")
     .transition().duration(TRANSITION_DURATION)
-      .attrTween('d', arcTween)
+      .attrTween('d', arcTween);
     player.select(".nick")
     .transition().duration(TRANSITION_DURATION)
       .attr("transform", function(d, i) { 
@@ -168,7 +168,7 @@ function GoalsGraph(config)
     player.select(".legend")
       .attr("transform", function(d, i) { 
         return "translate(" + (playerCol + 5) + "," + ((-1 * canvasHeight / 2) + (30 * (d.index + 1))) + ")"; 
-      })
+      });
 
 
     //

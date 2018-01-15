@@ -22,7 +22,7 @@ function RecentGames(gameData) {
   //   3) 1 Y-Scale maxed at the largest threshold of the 4 games
   //   4) Last game on top-left (index 0)
   //   5) TODO: Never display more than 5 players??  (would be crowded, how to handle this better?)
-  var xScale = []
+  var xScale = [];
   xScale[0] = d3.scaleBand().domain(gameData.games[0].goals).range([0, gWidth]);
   var xAxis = [];
   xAxis[0] = d3.axisBottom(xScale[0]).tickFormat('').tickSizeOuter(3).tickSizeInner(7);
@@ -71,7 +71,7 @@ function RecentGames(gameData) {
         .attr('transform', 'translate(' + x + ',' + y + ')')
         .call(axis);
     });
-  }
+  };
 }
 
 
